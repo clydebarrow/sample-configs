@@ -1,0 +1,37 @@
+esphome:
+  name: t-display
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    #type: esp-idf
+
+logger:
+  level: DEBUG
+
+
+
+power_supply:
+  - id: backlight
+    pin: 4
+    enable_on_boot: true
+
+spi:
+  clk_pin: 18
+  mosi_pin: 19
+
+i2c:
+  - scl: 22
+    sda: 21
+    scan: true
+    id: i2c_onboard
+
+display:
+  - platform: mipi_spi
+    id: ili_disp
+    model: t-display
+
+lvgl:
+  buffer_size: 25%
+

@@ -1,0 +1,51 @@
+substitutions: 
+  friendly_name: JC3636W518
+
+esphome: 
+  name: jc3636w518
+  friendly_name: ${friendly_name]
+    
+
+esp32: 
+  board: esp32-s3-devkitc-1
+  framework: 
+    type: esp-idf
+    sdkconfig_options: 
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+logger: 
+
+psram: 
+  mode: octal
+  speed: 80MHz
+
+spi:
+  id: display_qspi
+  type: quad
+  clk_pin: 9
+  data_pins: [11, 12, 13, 14]
+
+i2c:
+  sda: 7
+  scl: 8
+  id: touchscreen_bus
+
+power_supply:
+  - id: backlight_id
+    pin: 15
+    enable_on_boot: true
+
+display: 
+  - platform: mipi_spi
+    model: jc3636w518
+      
+touchscreen:
+  platform: cst816
+  id: my_touchscreen
+  interrupt_pin: GPIO41
+  reset_pin: GPIO40
+
+lvgl:

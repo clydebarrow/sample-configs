@@ -1,0 +1,46 @@
+esphome:
+  name: t4-amoled
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+
+spi:
+  id: quad_spi
+  type: quad
+  clk_pin: 15
+  data_pins: [14, 10, 16, 12]
+
+i2c:
+  sda: 6
+  scl: 7
+
+touchscreen:
+  - platform: cst226
+    id: my_touchscreen
+    interrupt_pin: 8
+    reset_pin: 17
+
+display:
+  - platform: mipi_spi
+    model: T4-S3
+    data_rate: 80MHz
+    spi_mode: mode0
+    cs_pin: 11
+    reset_pin: 13
+    enable_pin: 9
+    transform:
+      swap_xy: true
+      mirror_x: true
+    rotation: 270
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+lvgl:

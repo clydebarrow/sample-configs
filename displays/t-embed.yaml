@@ -1,0 +1,47 @@
+esphome:
+  name: t-embed
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: arduino
+    #type: esp-idf
+
+logger:
+  level: DEBUG
+  #hardware_uart: USB_SERIAL_JTAG
+
+
+psram:
+  mode: octal
+
+power_supply:
+  - id: power_on
+    enable_on_boot: true
+    pin:
+      ignore_strapping_warning: true
+      number: GPIO46
+  - id: backlight
+    pin: GPIO15
+    enable_on_boot: true
+
+spi:
+  clk_pin: GPIO12
+  mosi_pin: GPIO11
+  interface: hardware
+
+i2c:
+  - scl: 18
+    sda: 8
+    scan: true
+    id: i2c_onboard
+
+display:
+  - platform: mipi_spi
+    id: ili_disp
+    model: t-embed
+
+
+lvgl:
+

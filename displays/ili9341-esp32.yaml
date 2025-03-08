@@ -1,0 +1,66 @@
+esphome:
+  name: ili9341-test
+
+esp32:
+  board: nodemcu-32s
+  framework:
+    type: arduino # Just for something different
+
+
+logger:
+  logs:
+    xpt2046: INFO
+    touchscreen: INFO
+
+output:
+  - platform: ledc
+    id: gpio_5_backlight_pwm
+    pin: 25
+    inverted: false
+
+light:
+  - platform: monochromatic
+    output: gpio_5_backlight_pwm
+    name: "ILI9341 Display Backlight"
+    id: back_light
+    restore_mode: ALWAYS_ON
+
+spi:
+  clk_pin: 18
+  mosi_pin: 23
+  miso_pin: 19
+
+touchscreen:
+  platform: xpt2046
+  id: my_touchscreen
+  cs_pin: 32
+  #interrupt_pin: 36
+  update_interval: 50ms
+  threshold: 400
+  transform:
+    swap_xy: true
+    mirror_y: true
+    mirror_x: true
+  calibration:
+    x_min: 280
+    x_max: 3860
+    y_min: 340
+    y_max: 3860
+
+display:
+  - platform: mipi_spi
+    model: ili9341
+    id: main_lcd
+    data_rate: 20MHz
+    cs_pin: 21
+    dc_pin: 17
+    reset_pin:
+      ignore_strapping_warning: true
+      number: 5
+    transform:
+      swap_xy: true
+      mirror_x: false
+
+lvgl:
+  buffer_size: 25%
+

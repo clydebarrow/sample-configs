@@ -1,0 +1,63 @@
+substitutions: 
+  friendly_name: JC3248W535 with AXS15231
+
+esphome: 
+  name: jc3248w535
+  friendly_name: ${friendly_name]
+  platformio_options: 
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+    
+
+esp32: 
+  board: esp32-s3-devkitc-1
+  framework: 
+    type: esp-idf
+    sdkconfig_options: 
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+logger: 
+
+psram: 
+  mode: octal
+  speed: 80MHz
+
+spi: 
+  id: display_qspi
+  type: quad
+  clk_pin: 47
+  data_pins: [21,48,40,39]
+
+power_supply:
+  id: backlight_id
+  pin: 1
+  enable_on_boot: true
+
+display: 
+  - platform: mipi_spi
+    model: jc3248w535
+      
+i2c: 
+  sda: 4
+  scl: 8
+  frequency: 400kHz
+
+touchscreen:
+  platform: axs15231
+  update_interval: 30ms
+  #interrupt_pin: GPIO3
+  transform:
+    swap_xy: true
+    mirror_x: false
+    mirror_y: true
+  on_touch:
+    logger.log:
+      format: "touched at %d/%d"
+      args: [touch.x, touch.y]
+  on_release:
+    logger.log: release
+
+lvgl:

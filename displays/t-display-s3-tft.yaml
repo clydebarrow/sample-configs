@@ -1,0 +1,60 @@
+esphome:
+  name: t-display-s3
+  platformio_options:
+    board_build.flash_mode: dio
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+logger:
+
+output:
+  - platform: ledc
+    frequency: 9765Hz
+    pin: GPIO38
+    id: backlight_output
+
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: LCD Backlight
+    id: led
+    restore_mode: ALWAYS_ON
+    default_transition_length: 0s
+
+power_supply:
+  - id: lcd_pwr
+    enable_on_boot: true
+    pin: GPIO15
+# The LCD /RD pin must be held high.
+  - id: rd_clk
+    enable_on_boot: true
+    pin: 9
+
+spi:
+  type: octal
+  clk_pin: 8
+  data_pins: 
+    - 39
+    - 40
+    - 41
+    - 42
+    - ignore_strapping_warning: true
+      number: 45
+    - ignore_strapping_warning: true
+      number: 46
+    - 47
+    - 48
+  
+psram:
+  speed: 80MHz
+  mode: octal
+
+display:
+  - platform: mipi_spi
+    model: t-display-s3
+    rotation: 270
+
+lvgl:
