@@ -1,0 +1,52 @@
+# Display and touchscreen config for Lilygo T-Display S3 AMOLED Plus
+# https://lilygo.cc/products/t-display-s3-amoled-plus
+
+esphome:
+  name: t-amoled-plus
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+logger:
+
+external_components:
+  - source: github://clydebarrow/esphome@mipi-spi
+    components[mipi-spi, spi]
+
+spi:
+  clk_pin: 47
+  mosi_pin: 18
+
+i2c:
+  sda:
+    ignore_strapping_warning: true
+    number: 3
+  scl: 2
+  
+touchscreen:
+  - platform: cst816
+    id: my_touchscreen
+    interrupt_pin:
+      number: 21
+    transform:
+      swap_xy: true
+      mirror_x: true
+    on_touch:
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x,
+              touch.y,
+              touch.x_raw,
+              touch.y_raw
+              );
+display:
+  - platform: mipi_spi
+    model: t-display-s3-amoled-plus
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+lvgl:

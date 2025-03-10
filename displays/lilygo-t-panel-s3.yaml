@@ -1,0 +1,151 @@
+
+#-------------------------------------------
+substitutions:
+  name: lilygo-t-panel-s3
+  friendly_name: Lilygo T-Panel S3
+
+esphome:
+  name: "${name}"
+  platformio_options:
+    board_build.flash_mode: dio
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+logger:
+
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  - id: tp_i2c
+    sda: 15
+    scl: 7
+    scan: true
+    frequency: 400kHz
+
+sensor:
+  - platform: htu21d
+    model: htu21d
+    temperature:
+      id: temperature_id
+      name: "Temperature"
+    humidity:
+      id: humidity_id
+      name: "Humidity"
+    heater:
+      id: header_id
+      name: "Heater"
+
+pca9554:
+  id: expander
+
+touchscreen:
+  - platform: gt911
+    i2c_id: tp_i2c
+    id: my_touchscreen
+    update_interval: 16ms
+
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: LCD Backlight
+    id: lcd_backlight
+    restore_mode: ALWAYS_ON
+    default_transition_length: 0s
+    gamma_correct: 1.8
+
+switch:
+  - platform: gpio
+    id: "buzzer"
+    pin:
+      pca9554: expander
+      number: 5
+      mode:
+        output: true
+
+output:
+  - platform: ledc
+    id: backlight_output
+    pin: 14
+    frequency: 1220Hz
+    inverted: true
+    min_power: 15%
+
+spi:
+  - id: lcd_spi
+    clk_pin: GPIO2
+    mosi_pin: GPIO1
+    
+display:
+  - platform: st7701s
+    id: st7701s_disp
+    update_interval: never
+    auto_clear_enabled: false
+    data_rate: 2MHz
+    spi_mode: MODE3
+    color_order: BGR
+    invert_colors: true
+    dimensions:
+      width: 480
+      height: 480
+    transform:
+      mirror_x: false
+      mirror_y: false
+    cs_pin: GPIO42
+    de_pin: GPIO40
+    hsync_pin: GPIO39
+    vsync_pin: GPIO40
+    pclk_pin: GPIO41
+    pclk_frequency: 12MHz
+    pclk_inverted: false
+#
+    data_pins:
+      red:
+        - GPIO12       #r1
+        - GPIO13       #r2
+        - GPIO42       #r3
+        - GPIO46       #r4
+        - GPIO45       #r5
+      green:
+        - GPIO6       #g0
+        - GPIO7       #g1
+        - GPIO8       #g2
+        - GPIO9       #g3
+        - GPIO1       #g4
+        - GPIO1 1     #g5
+      blue:
+        - GPIO1       #b1
+        - GPIO2       #b2
+        - GPIO3       #b3
+        - GPIO4       #b4
+        - GPIO5       #b5`
+
+lvgl:
+  widgets:
+  - slider:
+      id: lv_slider_t_id
+      align: center
+      on_value:
+      - light.turn_on:
+          id: lcd_backlight
+          brightness: !lambda return x / 100.0;
+  - button:
+      align: bottom_mid
+      widgets:
+        - label:
+            text: Beep
+      on_click:
+        then:
+          - switch.turn_on: buzzer
+          - delay: 1s
+          - switch.turn_off: buzzer

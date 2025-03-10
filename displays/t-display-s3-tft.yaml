@@ -24,14 +24,14 @@ light:
     restore_mode: ALWAYS_ON
     default_transition_length: 0s
 
-power_supply:
-  - id: lcd_pwr
-    enable_on_boot: true
-    pin: GPIO15
-# The LCD /RD pin must be held high.
-  - id: rd_clk
-    enable_on_boot: true
-    pin: 9
+#power_supply:
+#  - id: lcd_pwr
+#    enable_on_boot: true
+#    pin: GPIO15
+## The LCD /RD pin must be held high.
+#  - id: rd_clk
+#    enable_on_boot: true
+#    pin: 9
 
 spi:
   type: octal
