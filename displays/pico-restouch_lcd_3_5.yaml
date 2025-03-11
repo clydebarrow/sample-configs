@@ -1,4 +1,4 @@
-# Config for Waveshare Pico-Res-Touch-LCD-3.5 with ESP32-S3-Pico
+# Config for Waveshare Pico-ResTouch-LCD-3.5 with ESP32-S3-Pico
 
 substitutions:
   name: wave-35
@@ -58,17 +58,6 @@ touchscreen:
 
 display:
   - platform: mipi_spi
-    spi_16: true
-    pixel_mode: 16bit
-    model: ili9488_a
-    transform:
-      swap_xy: false
-      mirror_y: false
-      mirror_x: true
-    dc_pin: GPIO33
-    cs_pin: GPIO34
-    reset_pin: GPIO40
-    data_rate: 20MHz
-    invert_colors: true
+    model: pico_restouch_lcd_3_5
 
 lvgl:

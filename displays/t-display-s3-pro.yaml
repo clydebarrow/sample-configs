@@ -57,7 +57,6 @@ binary_sensor:
 
 display:
   - platform: mipi_spi
-    id: ili_disp
     model: t-display-s3-pro
 
 psram:
