@@ -1,0 +1,86 @@
+substitutions:
+  name: host-lvgl
+
+esphome:
+  name: ${name}
+  platformio_options:
+    build_flags: [-g3]
+
+
+host:
+  mac_address: "62:23:45:AF:B3:DD"
+
+api:
+  reboot_timeout: 0s
+
+
+network:
+
+logger:
+  level: verbose
+  logs:
+    touchscreen: info
+    sdl: info
+    lvgl: info
+    sensor: debug
+
+touchscreen:
+  - id:
+    platform: sdl
+
+#
+display:
+  - platform: sdl
+    auto_clear_enabled: false
+    update_interval: never
+    dimensions:
+      height: 450
+      width: 450
+
+
+udp:
+  - id: udp_1
+    listen_address: 239.0.60.53
+  - id: udp_2
+    listen_address: 239.0.60.54
+  - id: udp_3
+
+packet_transport:
+  - platform: udp
+    id: transport_1
+    udp_id: udp_3
+    #providers:
+      #name: udp-8266
+      #encryption: "Bobby McGee"
+
+#sensor:
+  #- platform: packet_transport
+    #provider: udp-8266
+    #id: sensor_1
+
+#binary_sensor:
+  #- platform: packet_transport
+    #provider: udp-8266
+    #id: tick_tock
+
+#    encryption:
+#      key: a;sldkjfa;sldkf
+#    binary_sensors:
+#      - relay1_sensor
+#      
+#    providers:
+#      - name: udp-test
+#  - platform: udp
+#    id: transport_2
+#    udp_id: udp_2
+#    providers:
+#      - name: udp-test
+#  - udp_id: udp_3
+#    id: transport_3
+#    platform: udp
+#    providers:
+#      - name: hangar-lights
+#      - name: carport-ble
+#        encryption: "Big Mama Thornton"
+
+    

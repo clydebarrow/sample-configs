@@ -1,0 +1,59 @@
+
+substitutions:
+  name: udp-8266
+  friendly_name: UDP 8266
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+  project:
+    name: esphome.spi-test
+    version: "1.1"
+
+esp8266:
+  board: nodemcu
+
+wifi: !include wifi.yaml
+
+
+logger:
+  level: VERBOSE
+  logs:
+    sensor: DEBUG
+
+time:
+  platform: sntp
+  id: time_id
+  servers:
+    - 0.au.pool.ntp.org
+    - 1.au.pool.ntp.org
+    - 2.au.pool.ntp.org
+
+
+sensor:
+  - platform: template
+    id: sensor_1
+    name: "Sensor 1"
+    update_interval: 10s
+    lambda: return (float)rand() / RAND_MAX * -95;
+
+binary_sensor:
+  - platform: template
+    id: tick_tock
+    lambda: return id(time_id).now().second & 4;
+
+udp:
+
+packet_transport:
+  platform: udp
+#  encryption: "Bobby McGee"
+  sensors:
+    - sensor_1
+    - id: sensor_1
+      broadcast_id: sensor_brd
+      
+  binary_sensors:
+    - tick_tock
+    - id: tick_tock
+      broadcast_id: tock_brd

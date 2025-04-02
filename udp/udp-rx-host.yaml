@@ -1,0 +1,40 @@
+substitutions:
+  name: udp-rx
+  friendly_name: UDP RX
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+  platformio_options:
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+  project:
+    name: esphome.c3-test
+    version: "1.0"
+
+host:
+
+network:
+
+logger:
+
+udp:
+  port:
+    listen_port: 18522
+    broadcast_port: 18533
+
+
+packet_transport:
+  platform: udp
+  sensors: [ping_id]
+
+
+sensor:
+  - platform: packet_transport
+    id: random_id
+    provider: udp-tx
+  - platform: template
+    id: ping_id
+    update_interval: 4s
+    lambda: return random_uint32();

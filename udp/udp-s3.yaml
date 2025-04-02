@@ -1,0 +1,63 @@
+# For Waveshare 5" ESP32 board.
+
+substitutions:
+  friendly_name: UDP test
+
+esphome:
+  name: udp-test
+  friendly_name: ${friendly_name}
+  platformio_options:
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+logger:
+  level: DEBUG
+  logs:
+    wifi: INFO
+    sensor: INFO
+
+wifi: !include wifi.yaml
+
+network:
+  enable_ipv6: true
+
+ota:
+  platform: esphome
+
+binary_sensor:
+  - platform: udp
+    udp_id: udp_1
+    provider: hangar-lights
+    id: relay1_sensor
+  - platform: udp
+    udp_id: udp_1
+    provider: host-lvgl
+    id: relay1_sensor_1
+
+udp:
+  - addresses: 239.0.60.53
+    id: udp_1
+    update_interval: 1s
+    sensors:
+      - random_id
+  - sensors:
+      - id: random_id
+        broadcast_id: bcast_id
+      
+
+sensor:
+  - platform: template
+    id: random_id
+    update_interval: 5s
+    lambda: return random_uint32();

@@ -1,0 +1,37 @@
+substitutions:
+  name: udp-rx
+  friendly_name: UDP RX
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+  platformio_options:
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+  project:
+    name: esphome.c3-test
+    version: "1.0"
+
+esp32:
+  board: lolin_c3_mini
+  variant: esp32c3
+  framework:
+    type: esp-idf
+  #  version: 5.0.2
+  #  platform_version: 6.3.2
+
+wifi: !include wifi.yaml
+
+logger:
+
+udp:
+
+packet_transport:
+  platform: udp
+
+
+sensor:
+  - platform: packet_transport
+    id: random_id
+    provider: udp-tx

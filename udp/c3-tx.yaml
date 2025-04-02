@@ -1,0 +1,68 @@
+substitutions:
+  name: udp-tx
+  friendly_name: UDP TX
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+  platformio_options:
+    build_unflags: -Werror=all
+    board_build.flash_mode: dio
+  project:
+    name: esphome.c3-test
+    version: "1.0"
+
+esp32:
+  board: lolin_c3_mini
+  variant: esp32c3
+  framework:
+    type: esp-idf
+  #  version: 5.0.2
+  #  platform_version: 6.3.2
+
+wifi: !include ../wifi.yaml
+
+logger:
+  level: verbose
+  initial_level: debug
+  logs:
+    wifi: info
+    esp-idf: info
+    packet_transport: verbose
+
+udp:
+  - id: open_udp
+  - id: encrypt_udp
+    port: 18666
+
+packet_transport:
+  - platform: udp
+    udp_id: open_udp
+    id: open_transport
+    sensors:
+      - random_id
+    binary_sensors:
+      - tick_tock_id
+  - platform: udp
+    id: crypt_transport
+    udp_id: encrypt_udp
+    encryption: Memphis Slim
+    rolling_code_enable: true
+    sensors:
+      - id: random_id
+        broadcast_id: crypt_random_id
+    binary_sensors:
+      - id: tick_tock_id
+        broadcast_id: crypt_tick_tock_id
+
+sensor:
+  - platform: template
+    id: random_id
+    update_interval: 5s
+    lambda: return random_uint32();
+
+binary_sensor:
+  - platform: template
+    id: tick_tock_id
+    lambda: "return 0 != (millis() & 0x800);"

@@ -1,0 +1,69 @@
+substitutions:
+  name: udp-tx-host
+  friendly_name: UDP TX Host
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+host:
+
+logger:
+  level: verbose
+  initial_level: debug
+  logs:
+    wifi: info
+    esp-idf: info
+    packet_transport: verbose
+    sensor: info
+
+udp:
+  - id: open_udp
+  - id: encrypt_udp
+    port: 18666
+
+packet_transport:
+  - platform: udp
+    udp_id: open_udp
+    id: open_transport
+
+  - platform: udp
+    id: crypt_transport
+    udp_id: encrypt_udp
+    providers:
+      - name: udp-tx
+        encryption: Memphis Slim
+
+sensor:
+  - platform: packet_transport
+    transport_id: open_transport
+    id: random_id
+    provider: udp-tx
+    on_value:
+      logger.log:
+        format: "Sensor open random: %.0f"
+        args: [x]
+  - platform: packet_transport
+    transport_id: crypt_transport
+    id: crypt_random_id
+    provider: udp-tx
+    on_value:
+      logger.log:
+        format: "Sensor crypt random: %.0f"
+        args: [x]
+
+binary_sensor:
+  - platform: packet_transport
+    id: crypt_tick_tock_id
+    transport_id: crypt_transport
+    provider: udp-tx
+    
+  - platform: packet_transport
+    id: tick_tock_id
+    transport_id: open_transport
+    provider: udp-tx
+
+  - platform: packet_transport
+    id: relay1_sensor
+    transport_id: open_transport
+    provider: hangar-lights

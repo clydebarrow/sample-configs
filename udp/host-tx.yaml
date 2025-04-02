@@ -1,0 +1,58 @@
+substitutions:
+  name: udp-tx-host
+  friendly_name: UDP TX Host
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+host:
+
+logger:
+  level: verbose
+  initial_level: debug
+  logs:
+    wifi: info
+    esp-idf: info
+    packet_transport: verbose
+
+udp:
+  - id: open_udp
+  - id: encrypt_udp
+    port: 18666
+
+packet_transport:
+  - platform: udp
+    udp_id: open_udp
+    id: open_transport
+    sensors:
+      - random_id
+    binary_sensors:
+      - tick_tock_id
+  - platform: udp
+    id: crypt_transport
+    udp_id: encrypt_udp
+    encryption: Memphis Slim
+    sensors:
+      - random_id
+    binary_sensors:
+      - tick_tock_id
+
+sensor:
+  - platform: template
+    id: random_id
+    update_interval: 5s
+    lambda: return random_uint32();
+  - platform: packet_transport
+    transport_id: open_transport
+    id: ping_id
+    provider: udp-rx
+
+binary_sensor:
+  - platform: template
+    id: tick_tock_id
+    lambda: "return 0 != (millis() & 0x800);"
+  - platform: packet_transport
+    id: relay1_sensor
+    transport_id: open_transport
+    provider: hangar-lights
