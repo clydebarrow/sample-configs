@@ -51,7 +51,7 @@ display:
   - platform: mipi_spi
     model: ili9341
     id: main_lcd
-    data_rate: 20MHz
+    data_rate: 40MHz
     cs_pin: 21
     dc_pin: 17
     reset_pin:

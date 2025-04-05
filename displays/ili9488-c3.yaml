@@ -36,6 +36,9 @@ display:
       number: GPIO3
     reset_pin:
       number: GPIO4
+    data_rate: 40MHz
+    show_test_card: false
+    color_depth: 16
 
 lvgl:
   buffer_size: 25%

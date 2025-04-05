@@ -29,6 +29,18 @@ touchscreen:
   - platform: ft63x6
     id: my_touchscreen
     interrupt_pin: 7
+    transform:
+      swap_xy: true
+      mirror_y: true
+      mirror_x: false
+    on_touch:
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x,
+              touch.y,
+              touch.x_raw,
+              touch.y_raw
+              );
 
 psram:
   speed: 80MHz
