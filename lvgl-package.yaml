@@ -1,0 +1,1637 @@
+---
+lvgl:
+  id: lvgl_component
+  buffer_size: 100%
+  color_depth: 16
+  default_font: roboto20
+  msgboxes:
+    - id: simple_box
+      title: Simple
+      body: ""
+      close_button: true
+    - id: message_box
+      close_button: true
+      title: Messagebox
+      bg_color: 0xffff
+      body:
+        text: This is a sample messagebox
+        bg_color: 0x808080
+      #button_style:
+      #  bg_color: 0x00FF00
+      buttons:
+        - id: msgbox_button
+          text: Button
+          on_click:
+            lvgl.widget.show: simple_box
+        - id: msgbox_apply
+          text: "Close"
+          on_click:
+            then:
+              - lvgl.widget.hide: message_box
+  on_idle:
+    - timeout: 10s
+      then:
+        - logger.log: idle timeout
+        - if:
+            condition:
+              lvgl.is_idle:
+                timeout: 5s
+            then:
+              - logger.log: LVGL is idle
+    - timeout: 15s
+      then:
+        - logger.log: idle 15s timeout
+
+      #- lvgl.pause:
+      #- light.turn_off:
+      #    id: display_backlight
+      #    transition_length: 5s
+  log_level: WARN
+  disp_bg_image: disp_bg
+  disp_bg_color: color_back
+  #bg_opa: TRANSP
+
+  gradients:
+    - id: color_bar
+      direction: hor
+      dither: none
+      stops:
+        -
+          color: 0xFF0000
+          position: 0
+        -
+          color: 0xFFFF00
+          position: 42
+        -
+          color: 0x00FF00
+          position: 84
+        -
+          color: 0x00FFFF
+          position: 127
+        -
+          color: 0x0000FF
+          position: 169
+        -
+          color: 0xFF00FF
+          position: 212
+        -
+          color: 0xFF0000
+          position: 255
+  
+  style_definitions:
+    - id: header_footer
+      bg_color: 0x2F8CD8
+      bg_grad_color: 0x005782 #0x004466
+      bg_grad_dir: VER
+      bg_opa: cover
+      border_width: 0
+      radius: 0
+      pad_all: 0
+      border_color: 0x0077b3
+      text_color: 0xFFFFFF
+      width: 100% #240
+      height: 30
+      text_align: center
+    - id: style_line
+      line_color: color_blue
+      line_width: 8
+      line_rounded: true
+    - id: date_style
+      text_font: roboto10
+      align: center
+      text_color: 0x000000
+      bg_opa: cover
+      radius: 4
+      pad_all: 2
+    - id: spin_button
+      height: 40
+      width: 40
+    - id: spin_label
+      align: center
+      text_align: center
+      text_font: space40
+    - id: bdr_style
+      border_color: 0x808080
+      border_width: 2
+      pad_all: 4
+      align: center
+  theme:
+    arc:
+      scroll_on_focus: true
+    slider:
+      scroll_on_focus: true
+    button:
+      text_font: roboto10
+      scroll_on_focus: true
+      border_width: 2
+      border_side: [left, top]
+      outline_pad: 6
+      text_color: 0x000000
+      checked:
+        text_color: 0xFF0000
+      pressed:
+        border_color: 0xFF0000
+        text_color: 0xFFFFFF
+      focused:
+        border_color: 0x00FF00
+    checkbox:
+      border_color: 0xC0C0C0
+      indicator:
+        text_font: montserrat_14
+      checked:
+        bg_color: 0xC0C0C0
+
+        
+  top_layer:
+    text_font: helv20
+    widgets:
+    - buttonmatrix:
+        width: 100%
+        height: 10%
+        align: bottom_mid
+        id: top_layer
+        styles: header_footer
+        items:
+          styles: header_footer
+        rows:
+          - buttons:
+            - id: top_prev
+              text: "${menu_left}"
+              width: 1
+              on_click:
+                lvgl.page.previous:
+            - id: top_home
+              text: "${home_icon}"
+              width: 1
+              on_click:
+                then:
+                  lvgl.page.show: main_page
+            - id: top_next
+              text: "${menu_right}"
+              width: 1
+              on_click:
+                lvgl.page.next:
+        
+  page_wrap: true
+  pages:
+    - id: main_page
+      on_swipe_left:
+        logger.log: Swipe left
+      on_swipe_right:
+        logger.log: Swipe right
+      skip: true
+      layout:
+        type: flex
+        flex_align_main: center
+        #flex_flow: row_wrap
+      width: 100%
+      bg_color: 0x808080
+      bg_opa: cover
+      pad_all: 10
+      widgets:
+        - button:
+            checkable: true
+            id: press_me_button
+            widgets:
+              - label:
+                  text: Press me
+            on_value:
+              - logger.log:
+                  format: "Button is now %s"
+                  args: ['x ? "checked" : "unchecked"']
+
+        - button:
+            text_color: 0x000000
+            text_font: helv20
+            pressed:
+              border_color: color_blue
+              text_color: 0xFFFFFF
+              text_font: helv30
+            checkable: true
+            disabled:
+              text_color: 0x202020
+            id: lv_button
+            pad_left: 20px
+            pad_top: 20px
+            pad_bottom: 8px
+            pad_right: 8px
+            widgets:
+              - image:
+                  src: cat_img
+                  bg_opa: TRANSP
+                  align: bottom_right
+              - label:
+                  align: bottom_right
+                  x: -20
+                  y: -20
+                  text: "Label text"
+                  long_mode: dot
+                  id: wifi_label
+
+        - checkbox:
+            scroll_on_focus: true
+            id: lv_checkbox
+            click_focusable: true
+            align: center
+            text: Checkbox
+            on_click:
+              then:
+                - logger.log:
+                    format: "Button checked = %s"
+                    args: ['x ? "true" : "false"']
+        - switch:
+            id: lv_switch
+            bg_color: green
+            indicator:
+              checked:
+                bg_color: 0xFF0000
+            on_value:
+              - if:
+                  condition:
+                    lambda: return x;
+                  then:
+                    - lvgl.label.update:
+                        id: label_1_2
+                        text: !lambda |-
+                            ESP_LOGD("label", "update label");
+                            return "Switch is on";
+                  else:
+                    - lvgl.label.update:
+                        id: label_1_1
+                        text: !lambda return "c'est éteint";
+                    - lvgl.label.update:
+                        id: label_1_2
+                        text: "c'est éteint"
+              
+            on_click:
+              then:
+                - logger.log:
+                    format: "Button checked = %s"
+                    args: ['x ? "true" : "false"']
+                - lvgl.update:
+                    disp_bg_color: 0xFFFF00
+                - lvgl.bar.update:
+                    id: lv_bar
+                    animated: true
+                    value: !lambda |-
+                      auto r = rand() % 150;
+                      ESP_LOGD("bar", "Set value to %d", r);
+                      return r;
+        - label:
+            id: label_1_1
+            text_font: roboto20
+            outline_width: 1
+            outline_color: 0xFFFFFF
+            text: "Switch unknown"
+
+        - label:
+            id: label_1_2
+            outline_width: 1
+            outline_color: 0xFFFFFF
+            text_font: roboto20
+            text: "Switch unknown"
+                
+        - bar:
+            id: lv_bar
+            min_value: 0
+            max_value: 100
+            width: 100px
+            on_value:
+              then:
+                - logger.log:
+                    format: "Bar value is %f"
+                    args: [ x ]
+        - arc:
+            id: lv_arc
+            adjustable: true
+            on_change:
+              then:
+                - logger.log:
+                    format: "Arc changed to %f"
+                    args: [ x ]
+            on_value:
+              then:
+                - logger.log:
+                    format: "Arc value is %f"
+                    args: [ x ]
+            scroll_on_focus: true
+            value: 75
+            min_value: 1
+            max_value: 100
+            arc_color: 0xFF0000
+            indicator:
+              arc_color: 0xF000FF
+              pressed:
+                arc_color: 0xFFFF00
+              focused:
+                arc_color: 0x808080
+        - slider:
+            knob:
+              focused:
+                bg_color: 0x808080
+            scroll_on_focus: true
+            id: lv_slider
+            height: 30%
+            align: center
+            width: 20
+            min_value: 0
+            max_value: 50
+            on_value:
+              - logger.log:
+                  format: "Value on_value: %.0f"
+                  args: ['x' ]
+            on_release:
+              - logger.log:
+                  format: "Value on_release: %.0f"
+                  args: ['x' ]
+
+
+        - image:
+            src: bluemax_png
+            angle: 10
+            radius: 50
+            clip_corner: false
+            pivot_x: 50
+            pivot_y: 50
+            #transform_angle: 90
+           # mode: virtual
+           # antialias: true
+            
+            id: lv_img
+            clickable: true
+            checkable: true
+            #checked:
+             # opa: 40%
+        - dropdown:
+            indicator:
+              text_font: helv20
+            id: lv_dropdown
+            options:
+              - First
+              - Second
+              - Third
+              - 4th
+              - 5th
+              - 6th
+              - 7th
+              - 8th
+              - 9th
+            #selected_text: 4th
+            dir: top
+            symbol: ${arrow_down}
+            dropdown_list:
+              max_height: 100
+              bg_color: 0x000080
+              text_color: 0xFF00
+              #selected:
+                #bg_color: 0xFFFF00
+                #checked:
+                  #bg_color: 0x00
+                  #text_color: 0xFF0000
+              #scrollbar:
+              #  bg_color: 0xFF
+            on_value:
+              logger.log:
+                format: "Dropdown changed = %d"
+                args: [x]
+            on_cancel:
+              logger.log:
+                format: "Dropdown closed = %d"
+                args: [x]
+              
+        - label:
+            id: label_1
+            text_font: helv20
+            outline_width: 1
+            outline_color: 0xFFFFFF
+            text: "XX \U000f0084 \U0000f0ed XX" #mdi-battery-charging
+            on_click:
+              lvgl.dropdown.update:
+                #selected_text: "6th"
+                id: lv_dropdown
+
+        - label:
+            id: label_2
+            outline_width: 1
+            outline_color: 0xFFFFFF
+            text_font: roboto20
+            text: 'aAbBDcCxXyYzZáÁéÉíÍóÓőŐúÚűŰ0'
+
+    - id: page_1
+      #bg_opa: cover # 20%
+      layout:
+        type: flex
+        flex_align_cross: center
+        flex_align_main: space_between
+      pad_all: 10
+      widgets:
+        - obj:
+            width: 100%
+            height: 50px
+            bg_color: 0xFFFFFF
+            outline_width: 0
+            border_width: 2
+            border_color: 0x000000
+        - label:
+            height: size_content
+            width: 150px
+            long_mode: scroll_circular
+            text: 'Page 1 label with very long text wrapping lines'
+        - button:
+            on_click:
+              then:
+                - logger.log: Button clicked
+            width: size_content
+            id: change_btnm
+            widgets:
+              - label:
+                  width: 100px
+                  long_mode: scroll
+                  text: Disable button matrix
+                  on_press:
+                    then:
+                      - lvgl.widget.update:
+                          id: b_matrix
+                          state:
+                            disabled: true
+                      - lambda: |-
+                          static const char * new_matrix[] = {"A","bbb","\n","ccc",LV_SYMBOL_PREV,"\n","E",NULL};
+                          lv_btnmatrix_set_map(id(b_matrix)->obj, new_matrix);
+                        
+                        
+            text_color: 0x000000
+            align: center
+        - button:
+            bg_color: 0x80FF00
+            width: size_content
+            id: lv_page1_button0
+            on_click:
+              then:
+                - lvgl.pause:
+                    show_snow: true
+            widgets:
+              - label:
+                  bg_color: 0x80ffff
+                  width: 100px
+                  long_mode: scroll
+                  text: Disable button matrix
+        - button:
+            bg_color: 0xFF80FF
+            width: size_content
+            id: lv_page1_button1
+            on_click:
+              then:
+                - lvgl.widget.show:
+                    id: b_matrix
+            widgets:
+              - label:
+                  text_font: helv20
+                  bg_color: 0xFF80FF
+                  width: 100px
+                  long_mode: scroll
+                  text: Disable button matrix
+
+        - button:
+            on_click:
+              then:
+                - logger.log: Button clicked
+                - lvgl.widget.show: message_box
+            width: size_content
+            id: lv_page1_button
+            widgets:
+              - label:
+                  width: 100px
+                  long_mode: scroll
+                  text: "Show message box"
+
+        - roller:
+            id: lv_roller
+            visible_row_count: 2
+            anim_time: 500ms
+            options:
+              - Jan
+              - Feb
+              - Mar
+              - Apr
+              - May
+              - Jun
+              - Jul
+              - Aug
+              - Sep
+              - Oct
+              - Nov
+              - Dec
+            selected_index: 2
+            #on_value:
+              #then:
+                #- logger.log:
+                    #format: "Roller changed = %d: %s"
+                    #args: [x, text.c_str()]
+        - led:
+            id: lv_led
+            color: 0xFF0000
+            brightness: 50%
+            #on_long_press:
+              #lvgl.roller.update:
+                #id: lv_roller
+                #options: ["2024", "2025", "2026", "2027"]
+                #mode: infinite
+        - buttonmatrix:
+            on_press:
+              logger.log:
+                format: "matrix button pressed: %d"
+                args: ["x"]
+            on_long_press:
+              lvgl.matrix.button.update:
+                id: button_a #[button_e, button_c]
+                control:
+                  disabled: true
+            on_click:
+              logger.log:
+                format: "matrix button clicked: %d, is button_a = %u"
+                args: ["x", "id(button_a) == x"]
+            items:
+              checked:
+                bg_color: 0xFFFF00
+            id: b_matrix
+              
+            rows:
+              - buttons:
+                - id: button_a
+                  text: ${home_icon}
+                  width: 2
+                  control:
+                    checkable: true
+                  on_value:
+                    logger.log:
+                      format: "button_a value %d"
+                      args: [x]
+                - id: button_b
+                  text: B
+                  width: 1
+                  on_value:
+                    logger.log:
+                      format: "button_b value %d"
+                      args: [x]
+                  on_click:
+                    then:
+                      - lvgl.page.previous:
+                  control:
+                    hidden: false
+              - buttons:
+                - id: button_c
+                  text: C
+                  control:
+                    checkable: false
+                - id: button_d
+                  text: ${menu_left}
+                  on_long_press:
+                    then:
+                      logger.log: Long pressed
+                  on_long_press_repeat:
+                    then:
+                      logger.log: Long pressed repeated
+              - buttons:
+                - id: button_e
+                  text: E
+                  width: 2
+                  control:
+                    click_trig: false
+                    checked: true
+    - id: page_2
+      layout:
+        type: flex
+        flex_align_main: space_evenly
+      widgets:
+        - line:
+            id: lvgl_line_id
+            styles: style_line
+            align: center
+            points:
+              - 5, 5
+              - 70, 70
+              - 120, 10
+              - 180, 60
+              - 240, 10
+            on_click:
+              lvgl.widget.update:
+                id: lvgl_line_id
+                line_color: 0xFFFF
+        - obj:
+            width: size_content
+            height: size_content
+            widgets:
+              - buttonmatrix:
+                  align: BOTTOM_MID
+                  items:
+                    disabled:
+                      bg_color: 0x00FFFF
+                    align: center
+                  id: keypad_matrix
+                  disabled:
+                    bg_color: 0x00FF00
+                  rows:
+                    - buttons:
+                        - text: 1
+                          key_code: "1"
+                        - text: 2
+                          key_code: "2"
+                        - text: 3
+                    - buttons:
+                        - text: 4
+                        - text: 5
+                        - text: 6
+                          key_code: 0x36
+                    - buttons:
+                        - text: 7
+                        - text: 8
+                        - text: 9
+                    - buttons:
+                        - text: ${backspace}
+                          key_code: "*"
+                        - text: 0
+                        - text: ${check}
+                          key_code: '#'
+              - label:
+                  text_align: center
+                  height: 100
+                  id: pin_code
+                  align: TOP_MID
+        - image:
+            x: 10
+            y: 200
+            src: cat_img_1
+            id: img_id
+            radius: 11
+            clip_corner: true
+        - label:
+            id: lbl_cathome
+            align_to:
+              id: img_id
+              x: 0
+              y: 10
+              align: OUT_BOTTOM_MID
+            text: 'Home'
+            text_color: 0x00FF00
+        - button:
+            x: 100
+            y: 200
+            widgets:
+              - label:
+                  text: Disable keypad
+            on_press:
+              then:
+                - lvgl.buttonmatrix.update:
+                    id: keypad_matrix
+                    state:
+                      disabled: true
+                    items:
+                      bg_color: 0x0000ff
+                - lvgl.spinner.update:
+                    id: spinner_id
+                    indicator:
+                      arc_color: 0x0000FF
+
+        - button:
+            x: 100
+            y: 240
+            checkable: true
+            widgets:
+              - label:
+                  text: Enable keypad
+            on_value:
+              logger.log:
+                format: "Button value is %d"
+                args: [x]
+            on_press:
+              then:
+                - lvgl.buttonmatrix.update:
+                    id: keypad_matrix
+                    state:
+                      disabled: false
+                    items:
+                      bg_color: 0xf0f0f0
+
+        - spinner:
+            id: spinner_id
+            indicator:
+              arc_color: 0xF000FF
+            x: 200
+            y: 400
+            height: 100
+            width: 100
+            spin_time: 2s
+            arc_length: 60deg
+    - id: page_3
+      layout:
+        type: flex
+      widgets:
+        - obj:
+            scrollbar_mode: "off"
+            pad_all: 0
+            width: 230
+            max_width: 230
+            height: 40
+            bg_opa: 0
+            border_width: 1
+            widgets:
+              - checkbox:
+                  id: chk_stat_6
+                  text: "Pretty long blah blah blah to go wider than obj width"
+                  x: 5
+                  y: 5
+        - buttonmatrix:
+            align: bottom_mid
+            width: 100%
+            items:
+              checked:
+                bg_color: 0x00FFFF
+              align: center
+            id: page_selector
+            one_checked: true
+            rows:
+              - buttons:
+                - text: "Home page"
+                  width: 1
+                  control:
+                    checkable: true
+                  on_click:
+                    then:
+                      lvgl.page.show: main_page
+                - text: "Page 1"
+                  width: 1
+                  control:
+                    checkable: true
+                  on_click:
+                    then:
+                      lvgl.page.show: page_1
+                - text: "Page 2"
+                  width: 1
+                  control:
+                    checkable: true
+                  on_click:
+                    then:
+                      - lvgl.page.show: page_2
+                      - logger.log:
+                          format: "Button checked = %s"
+                          args: ['x ? "true" : "false"']
+        - button:
+            widgets:
+              - animimg:
+                  height: 60
+                  id: anim_img
+                  src: [cat_img, dog_img]
+                  repeat_count: 10
+                  duration: 1s
+                  auto_start: true
+
+            on_click:
+              - logger.log:
+                  format: "Button checked = %s"
+                  args: ['x ? "true" : "false"']
+              - lvgl.animimg.update:
+                  id: anim_img
+                  duration: 200ms
+                  repeat_count: infinite
+                  auto_start: false
+        - button:
+            widgets:
+              - label:
+                  text: Stop animation
+            on_click:
+              - lvgl.animimg.stop: anim_img
+        - button:
+            widgets:
+              - label:
+                  text: Start animation
+            on_click:
+              - lvgl.animimg.start: anim_img
+              - lvgl.spinbox.update:
+                  id: spinbox_id
+                  value: !lambda return 100;
+        - obj:
+            layout:
+              type: flex
+            width: size_content
+            height: size_content
+            widgets:
+              - button:
+                  styles: spin_button
+                  id: spin_up
+                  on_click:
+                    - lvgl.widget.focus: spinbox_id
+                    - lvgl.spinbox.increment: spinbox_id
+                  widgets:
+                    - label:
+                        styles: spin_label
+                        text: "+"
+              - spinbox:
+                  text_font: space16
+                  id: spinbox_id
+                  align: center
+                  width: 120
+                  range_from: -10
+                  range_to: 1000
+                  step: 5
+                  rollover: false
+                  digits: 6
+                  decimal_places: 1
+                  value: 15
+                  cursor:
+                    bg_color: 0xff0000
+                    text_color: 0
+                  on_value:
+                    then:
+                      - logger.log:
+                          format: "Spinbox value is %f"
+                          args: [ x ]
+              - button:
+                  styles: spin_button
+                  id: spin_down
+                  on_click:
+                    - lvgl.widget.focus: spinbox_id
+                    - lvgl.spinbox.decrement: spinbox_id
+                  widgets:
+                    - label:
+                        styles: spin_label
+                        text: "-"
+    - id: page_4
+      widgets:
+        - tileview:
+          #  scrollbar:
+          #    bg_color: 0xFF0000
+            id: tv_id
+            on_value:
+              then:
+                - logger.log:
+                    format: "tile = %p, cat=%p"
+                    args: ['tile', 'id(tile_with_cat)']
+                - if:
+                    condition:
+                      lambda: return tile == id(tile_with_cat);
+                    then:
+                      - logger.log: "Cat tile is now showing"
+            tiles:
+              - id: tile_with_cat
+                row: 0
+                column: 0
+                dir: VER
+                styles: bdr_style
+                outline_width: 4px
+                widgets:
+                  - image:
+                      id: cat_tile
+                      align: center
+                      src: cat_img
+                      on_click:
+                        then:
+                          - lvgl.tileview.select:
+                              id: tv_id
+                              row: 1
+                              column: 0
+                              animated: false
+              - id: tile_with_dog
+                row: 1
+                column: 0
+                widgets:
+                  - image:
+                      src: dog_img
+                      on_click:
+                        then:
+                          - lvgl.tileview.select:
+                              id: tv_id
+                              tile_id: tile_with_cat
+                              animated: true
+    - id: page_5
+      widgets:
+
+
+        - dropdown:
+            id: assign_dropdown
+            width: 100
+            x: 200
+            y: 50
+            options:
+              - OPTION1
+              - OPTION2
+            on_value:
+              then:
+              # Save the selected option in the global variable
+                - lambda: |-
+                    id(selected_option) = x;  
+
+        - label:
+            id: kb_code
+            align: left_mid
+            y: -50
+        - dropdown:
+            id: other_dropdown
+            align: right_mid
+            y: -50
+            options:
+              - First
+              - Second
+              - Third
+              - 4th
+              - 5th
+              - 6th
+              - 7th
+              - 8th
+              - 9th
+            #on_value:
+              #lvgl.textarea.update:
+                #text: !lambda return text;
+                  #format: "%s"
+                  #args: [text.c_str()]
+                #id: textarea_1
+        - textarea:
+            height: 150
+            id: textarea_1
+            align: TOP_LEFT
+            on_focus:
+              then:
+                - lvgl.keyboard.update:
+                    id: keyboard_id
+                    mode: text_lower
+                    textarea: textarea_1
+                - lvgl.label.update:
+                    id: kb_code
+                    text: !lambda return id(text_sensor_1).get_state();
+        - textarea:
+            one_line: true
+            password_mode: true
+            height: 150
+            id: textarea_2
+            align: TOP_RIGHT
+            on_focus:
+              then:
+                lvgl.keyboard.update:
+                  id: keyboard_id
+                  mode: number
+                  textarea: textarea_2
+            on_value:
+              then:
+                - logger.log:
+                    format: "textarea on_value, value %s"
+                    args: [text.c_str()]
+            on_ready:
+              then:
+                - logger.log:
+                    format: "textarea ready, value %s"
+                    args: [ text.c_str() ]
+        - label:
+            text: Click me
+            on_click:
+              then:
+                - lvgl.textarea.update:
+                    id: textarea_1
+                    text: "Updated text"
+        - keyboard:
+            id: keyboard_id
+            align: BOTTOM_MID
+            textarea: textarea_1
+            y: -30
+            on_ready:
+              then:
+                - logger.log: Keyboard is ready
+            on_cancel:
+              then:
+                - logger.log: Keyboard cancelled
+    - id: page_6
+      widgets:
+        - tabview:
+            id: tabview_id
+            width: 100%
+            height: 80%
+            position: top
+            on_value:
+              then:
+                - if:
+                    condition:
+                      lambda: return tab == id(tabview_tab_1);
+                    then:
+                      - logger.log: "Dog tab is now showing"
+            tab_style:
+              border_color: 0x00FF00
+              border_width: 6
+              items:
+                text_color: 0x0000FF
+            tabs:
+              - name: Dog
+                id: tabview_tab_1
+                border_width: 2
+                border_color: 0xff0000
+                width: 100%
+                pad_all: 8
+                layout:
+                  type: grid
+                  grid_row_align: end
+                  grid_rows: [100px, fr(1), content]
+                  grid_columns: [fr(1), fr(1), fr(1)]
+                widgets:
+                  - image:
+                      grid_cell_row_pos: 0
+                      grid_cell_column_pos: 0
+                      src: dog_img
+                      on_click:
+                        then:
+                          - lvgl.tabview.select:
+                              id: tabview_id
+                              index: 1
+                              animated: true
+                  - label:
+                      styles: bdr_style
+                      grid_cell_x_align: center
+                      #grid_cell_y_align: stretch
+                      grid_cell_row_pos: 0
+                      grid_cell_column_pos: 1
+                      grid_cell_column_span: 1
+                      text: "Grid cell 0/1"
+                      transform_angle: !lambda return 450;
+                  - label:
+                      grid_cell_x_align: end
+                      styles: bdr_style
+                      grid_cell_row_pos: 1
+                      grid_cell_column_pos: 0
+                      text: "Grid cell 1/0"
+                  - label:
+                      styles: bdr_style
+                      grid_cell_row_pos: 1
+                      grid_cell_column_pos: 1
+                      text: "Grid cell 1/1"
+                  - image:
+                      src: svg_image
+                      id: cell_1_3
+                      styles: bdr_style
+                      grid_cell_row_pos: 1
+                      grid_cell_column_pos: 2
+              - name: Cat
+                id: tabview_tab_2
+                widgets:
+                  - image:
+                      src: cat_img
+                      on_click:
+                        then:
+                          - logger.log: Cat image clicked
+                          - lvgl.tabview.select:
+                              id: tabview_id
+                              index: 0
+                              animated: true
+                  
+    - id: page_7
+      bg_image_src: big_image
+      bg_image_opa: cover
+      layout:
+        type: flex
+      widgets:
+        - slider:
+            min_value: 0
+            max_value: 255
+            bg_opa: cover
+            bg_grad: color_bar
+            radius: 0
+            indicator:
+              bg_opa: transp
+            knob:
+              radius: 1
+              width: 4
+              height: 10%
+              bg_color: 0x000000
+            width: 100%
+            height: 10%
+            align: top_mid
+            on_value:
+              lvgl.indicator.update:
+                id: minute_hand
+               # opa: !lambda return x;
+        - image:
+            id: weather_image
+            src: sunny_image
+            bg_color: 0x8080FF
+        - meter:
+            height: 200px
+            width: 200px
+            indicator:
+              bg_color: 0xFF
+              radius: 0
+                  
+            bg_opa: TRANSP
+            text_color: 0xFFFFFF
+            scales:
+              - ticks:
+                  width: 1
+                  count: 61
+                  length: 20
+                  color: 0xFFFFFF
+                range_from: 0
+                range_to: 60
+                angle_range: 360
+                rotation: 270
+                indicators:
+                  - line:
+                     # opa: 50%
+                      id: minute_hand
+                      color: 0xFF0000
+                      r_mod: -1
+                      width: 3
+              - 
+                angle_range: 330
+                rotation: 300
+                range_from: 1
+                range_to: 12
+                ticks:
+                  width: 1
+                  count: 12
+                  length: 1
+                  major:
+                    stride: 1
+                    width: 4
+                    length: 8
+                    color: 0xC0C0C0
+                    label_gap: 6
+
+              - angle_range: 360
+                rotation: 270
+                range_from: 0
+                range_to: 720
+                indicators:
+                  - line:
+                      id: hour_hand
+                      value: 180
+                      width: 4
+                      color: 0xA0A0A0
+                      r_mod: -20
+
+globals:
+  - id: selected_option
+    type: int
+    initial_value: '0'
+
+external_components:
+#  - source:
+#      type: git
+#      url: "file:///Users/clyde/dev/opensourceprojects/esp/esphome"
+#      ref: "lvgl-rounding"
+#    components: [lvgl, image]
+#    refresh: 30s
+
+substitutions:
+  light_recessed: "\U000F179B"
+  wall_sconce_round: "\U000F0748"
+  gas_burner: "\U000F1A1B"
+  home_icon: "\U000F02DC"
+  menu_left: "\U000F0A02"
+  menu_right: "\U000F035F"
+  close: "\U000F0156"
+  delete: "\U000F01B4"
+  backspace: "\U000F006E"
+  check: "\U000F012C"
+  arrow_down: "\U000F004B"
+
+
+esphome:
+  on_boot:
+    then:
+      - light.turn_on:
+          id: lv_light
+          brightness: 100%
+          red: 100%
+          green: 0
+          blue: 0
+sensor:
+  - platform: template # Reports the WiFi signal strength/RSSI in dB
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 5s
+    lambda: return (float)rand() / RAND_MAX * -95;
+    on_value: 
+      then:
+        - lvgl.label.update:
+            id: wifi_label
+            text:
+              format: "%.0fdBm"
+              args: [x]
+  - platform: lvgl
+    name: "LVGL Arc Sensor"
+    widget: lv_arc
+      
+interval:
+  - interval: 20s
+    then:
+      - text_sensor.template.publish:
+          id: condition
+          state: "sunny"
+      - script.execute: update_weather
+      - delay: 5s
+      - text_sensor.template.publish:
+          id: condition
+          state: "cloudy"
+      - script.execute: update_weather
+
+light:
+  - platform: lvgl
+    name: LVGL LED
+    id: lv_light
+    widget: lv_led
+    effects:
+      - pulse:
+          name: "Slow Pulse"
+          # transition_length: 1s      # defaults to 1s
+          update_interval: 2s
+      - strobe:
+      - strobe:
+          name: Strobe Effect With Custom Values
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 90%
+              blue: 0%
+              duration: 500ms
+            - state: false
+              duration: 250ms
+            - state: true
+              brightness: 100%
+              red: 0%
+              green: 100%
+              blue: 0%
+              duration: 500ms
+
+        
+number:
+  - platform: lvgl
+    widget: lv_slider
+    id: lvgl_slider_sensor
+    name: LVGL Slider
+  - platform: lvgl
+    widget: lv_arc
+    id: lvgl_arc_sensor
+    name: LVGL Arc
+  - platform: lvgl
+    widget: lv_bar
+    id: lvgl_bar_sensor
+    name: LVGL Bar
+  - platform: lvgl
+    widget: spinbox_id
+    id: lvgl_spinbox_number
+    name: LVGL Spinbox
+#      then:
+#        - if:
+#            condition:
+#              number.in_range:
+#                id: lvgl_arc_sensor
+#                below: 50
+#            then:
+#              - lvgl.slider.update:
+#                  id: lv_slider
+#                  knob:
+#                    bg_color: 0xFF0000
+#              - lvgl.img.update:
+#                  id: lv_img
+#                  src: cat_img
+#            else:
+#              - lvgl.slider.update:
+#                  id: lv_slider
+#                  knob:
+#                    bg_color: 0x00FF00
+#              - lvgl.img.update:
+#                  id: lv_img
+#                  src: dog_img
+
+
+text_sensor:
+  - platform: lvgl
+    id: text_sensor_1
+    widget: textarea_1
+    name: Textarea 1
+  - platform: lvgl
+    id: pin_code_sensor
+    widget: pin_code
+    name: PIN Code Sensor
+  - platform: template
+    id: condition
+    update_interval: never
+    lambda: return {"sunny"};
+
+script:
+  id: update_weather
+  then:
+    - if:
+        condition:
+          lambda: return id(condition).state == "sunny";
+        then:
+          lvgl.image.update:
+            id: weather_image
+            src: sunny_image
+    - if:
+        condition:
+          lambda: return id(condition).state == "cloudy";
+        then:
+          lvgl.image.update:
+            id: weather_image
+            src: cloudy_image
+
+binary_sensor:
+  - platform: lvgl
+    id: lvgl_pressbutton
+    name: Pressbutton
+    widget: lv_page1_button
+    publish_initial_state: true
+  - platform: lvgl
+    name: ButtonMatrix button
+    widget: button_a
+  - platform: lvgl
+    id: switch_d
+    name: Matrix switch D
+    widget: button_d
+    on_click:
+      then:
+        - lvgl.page.previous:
+            animation: move_right
+            time: 600ms
+  - platform: lvgl
+    widget: lv_checkbox
+    name: "Checkbox focus"
+    on_press:
+      logger.log: checkbox is focused
+    on_release:
+      logger.log: checkbox is defocused
+  - platform: lvgl
+    id: button_checker
+    name: LVGL button
+    widget: lv_button
+    on_state:
+      then:
+        - lvgl.checkbox.update:
+            id: lv_checkbox
+            state:
+              checked: !lambda return x;
+            text: Unchecked
+  - platform: lvgl
+    name: LVGL checkbox
+    widget: lv_checkbox
+    
+
+font:
+  - file: "fonts/roboto.ttf"
+    id: roboto20
+    size: 20
+    bpp: 4
+    glyphsets: GF_Latin_Kernel
+    glyphs:
+      - 'aAbBDcCxXyYzZáÁéÉíÍóÓőŐúÚűŰ0'
+    extras:
+      - file: 'fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F035F",
+          "\U000F0156",
+          "\U000F0C5F", 
+          "\U000f0084",
+          "\U000f0091",
+          ]
+  - file: "fonts/roboto.ttf"
+    id: roboto10
+    size: 10
+    bpp: 4
+    extras:
+      - file: 'fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F035F",
+          "\U000F0156",
+          "\U000F0C5F", 
+          "\U000f0084",
+          "\U000f0091",
+          ]
+  - file: "fonts/Helvetica.ttf"
+    id: helv20
+    bpp: 2
+    size: 20
+    extras:
+      - file: 'fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F035F",
+          "\U000F0156",
+          "\U000F0C5F", 
+          "\U000f0084",
+          "\U000f0091",
+          ]
+
+  - file: "fonts/Helvetica.ttf"
+    id: helv30
+    bpp: 2
+    size: 30
+    extras:
+      - file: 'fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F035F",
+          "\U000F0156",
+          "\U000F0C5F", 
+          "\U000f0084",
+          "\U000f0091",
+          ]
+
+  - file: "fonts/roboto-condensed.ttf"
+    id: roboto64
+    size: 64
+    bpp: 4
+    glyphs: '-+X'
+  - file: "fonts/roboto-condensed.ttf"
+    id: roboto42
+    size: 28
+    bpp: 4
+    glyphs: 'aAbBcCxXyYzZáÁéÉíÍóÓőŐúÚűŰ'
+  - file: montserrat.ttf
+    id: mont20
+    glyphs: 'aAbBDcCxXyYzZáÁéÉíÍóÓőŐúÚűŰ0'
+    size: 20
+    bpp: 4
+  - file: "fonts/space-mono.ttf"
+    id: space16
+    size: 16
+    bpp: 4
+    glyphs: 
+      - '0123456789+- .'
+  - file: "fonts/space-mono.ttf"
+    id: space40
+    size: 40
+    bpp: 4
+
+
+
+color:
+  - id: color_back
+    hex: "404040"
+  - id: color_blue
+    hex: 0000FF
+
+select:
+  - platform: lvgl
+    widget: lv_dropdown
+    name: LVGL Dropdown
+    animated: true
+    #restore_value: true
+  - platform: lvgl
+    widget: lv_roller
+    name: LVGL Roller
+    animated: true
+
+
+switch:
+  - platform: lvgl
+    name: Button switch
+    widget: lv_button
+    on_turn_on:
+      then:
+        - lvgl.widget.disable: lv_arc
+        - lvgl.widget.hide: button_c
+    on_turn_off:
+      then:
+        - lvgl.widget.show: button_c
+        - lvgl.widget.enable: lv_arc
+  - platform: lvgl
+    name: Matrix switch
+    widget: button_a
+  - platform: lvgl
+    name: Switch switch
+    widget: lv_switch
+
+key_collector:
+  - id: pincode_reader
+    source_id: keypad_matrix
+    min_length: 4
+    max_length: 4
+    end_keys: "#"
+    end_key_required: true
+    back_keys: "*"
+    allowed_keys: "0123456789S"
+    timeout: 10s
+    on_progress:
+      - lvgl.label.update:
+          id: pin_code
+          text: !lambda 'return x;'
+          border_color: 0
+
+      - logger.log:
+          format: "input progress: '%s', started by '%c'"
+          args: ['x.c_str()', "(start == 0 ? '~' : start)" ]
+    on_result:
+      - logger.log:
+          format: "input result: '%s', started by '%c', ended by '%c'"
+          args: ['x.c_str()', "(start == 0 ? '~' : start)", "(end == 0 ? '~' : end)" ]
+    on_timeout:
+      - logger.log:
+          format: "input timeout: '%s', started by '%c'"
+          args: ['x.c_str()', "(start == 0 ? '~' : start)" ]
+  - id: kb_reader
+    source_id: keyboard_id
+    min_length: 4
+    max_length: 20
+    end_keys: "#"
+    end_key_required: true
+    back_keys: "*"
+    allowed_keys: "abcdefghijklABNCDEFGHIJKL0123456789S"
+    timeout: 10s
+    on_progress:
+      - lvgl.label.update:
+          id: kb_code
+          text: !lambda 'return x;'
+          border_color: 0
+
+      - logger.log:
+          format: "input progress: '%s', started by '%c'"
+          args: ['x.c_str()', "(start == 0 ? '~' : start)" ]
+    on_result:
+      - logger.log:
+          format: "input result: '%s', started by '%c', ended by '%c'"
+          args: ['x.c_str()', "(start == 0 ? '~' : start)", "(end == 0 ? '~' : end)" ]
+    on_timeout:
+      - logger.log:
+          format: "input timeout: '%s', started by '%c'"
+          args: ['x.c_str()', "(start == 0 ? '~' : start)" ]
+
+
+
+text:
+  - platform: lvgl
+    id: text_text
+    name: "Textarea_1 text"
+    widget: textarea_1
+    mode: text
+  - platform: lvgl
+    id: pin_code_text
+    name: "PIN Code"
+    widget: pin_code
+    mode: text
+
+
+image:
+  rgb565:
+    - file: cloudy.png
+      id: cloudy_image
+      resize: 50x50
+      transparency: alpha_channel
+    - file: sunny.png
+      id: sunny_image
+      resize: 50x50
+    - file: cat.jpg
+      id: cat_img_1
+      resize: 200x200
+    - file: cat.jpg
+      id: cat_img
+      resize: 100x100
+    - file: cat.jpg
+      id: disp_bg
+      resize: 200x200
+    - file: cat.jpg
+      id: big_image
+      resize: 400x400
+    - file: dog.jpg
+      id: dog_img
+      resize: 100x100
+    - file: logo-text-trans.svg
+      resize: 100x100
+      id: svg_image
+  binary:
+    opaque:
+    - file: logo-text-trans.svg
+      resize: 100x100
+      id: alpha_binary
+      
+  grayscale:
+    alpha_channel:
+      - file: bluemax.png
+        resize: 100x100
+        id: bluemax_png
+        transparency: alpha_channel
