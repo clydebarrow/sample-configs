@@ -4,14 +4,19 @@ esphome:
 esp32:
   board: esp32dev
   framework:
-    type: arduino
-    #type: esp-idf
+    #type: arduino
+    type: esp-idf
 
 logger:
   level: DEBUG
 
 
+#external_components:
+  #- source: github://pr#8383
+    #components: [spi, mipi_spi]
+    #refresh: 1h
 
+# This could be a PWM light
 power_supply:
   - id: backlight
     pin: 4
@@ -31,7 +36,19 @@ display:
   - platform: mipi_spi
     id: ili_disp
     model: t-display
+    rotation: 90
 
 lvgl:
   buffer_size: 25%
+  widgets:
+    - obj:
+        height: 100%
+        width: 100%
+        bg_color: black
+        border_color: white
+        border_width: 0
+        border_opa: cover
+        outline_color: blue
+        outline_width: 1
+        outline_opa: cover
 

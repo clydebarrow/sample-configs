@@ -1,12 +1,15 @@
 esphome:
   name: t-display-s3
-  platformio_options:
-    board_build.flash_mode: dio
 
 esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: esp-idf
+
+#external_components:
+#  - source: github://pr#8383
+#    components: [const, lvgl, mipi_spi, qspi_dbi, spi]
+#    refresh: 1h
 
 logger:
 
@@ -23,15 +26,6 @@ light:
     id: led
     restore_mode: ALWAYS_ON
     default_transition_length: 0s
-
-#power_supply:
-#  - id: lcd_pwr
-#    enable_on_boot: true
-#    pin: GPIO15
-## The LCD /RD pin must be held high.
-#  - id: rd_clk
-#    enable_on_boot: true
-#    pin: 9
 
 spi:
   type: octal

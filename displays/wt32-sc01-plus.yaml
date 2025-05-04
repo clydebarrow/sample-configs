@@ -7,9 +7,6 @@ esp32:
     type: esp-idf
     sdkconfig_options:
       CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
 
 logger:
 
@@ -33,21 +30,13 @@ touchscreen:
       swap_xy: true
       mirror_y: true
       mirror_x: false
-    on_touch:
-    - lambda: |-
-          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
-              touch.x,
-              touch.y,
-              touch.x_raw,
-              touch.y_raw
-              );
 
 psram:
   speed: 80MHz
 
 external_components:
   - source: github://clydebarrow/esphome@mipi-spi
-    components: [spi, mipi_spi]
+    components: [spi, mipi_spi, const]
     refresh: 1h
 
 spi:

@@ -1,0 +1,82 @@
+esphome:
+  name: makerfabs-4
+
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+
+wifi: !include ../wifi.yaml
+
+api:
+
+ota:
+  platform: esphome
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+
+spi:
+  - id: lcd_spi
+    clk_pin: 12
+    mosi_pin: 11
+
+i2c:
+  sda: 17
+  scl: 18
+  scan: true
+  id: bus_a
+
+
+touchscreen:
+  - platform: gt911
+
+display:
+  - platform: st7701s
+    auto_clear_enabled: false
+    update_interval: never
+    color_order: RGB
+    invert_colors: true
+    dimensions:
+      width: 480
+      height: 480
+    transform:
+      mirror_x: false
+      mirror_y: false
+    cs_pin: 1
+    de_pin:
+      number: 45
+      ignore_strapping_warning: true
+    hsync_pin: 5
+    vsync_pin: 4
+    pclk_pin: 21
+    init_sequence: 1
+    data_pins:
+      red:
+        - 39
+        - 40
+        - 41
+        - 42
+        - 2
+      green:
+        - 0
+        - 9
+        - 14
+        - 47
+        - 48
+        - 3
+      blue:
+        - 6
+        - 7
+        - 15
+        - 16
+        - 8
+
+lvgl:

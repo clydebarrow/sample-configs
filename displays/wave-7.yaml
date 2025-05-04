@@ -1,0 +1,175 @@
+# For Waveshare 7" ESP32 board.
+
+substitutions:
+  friendly_name: Waveshare 7
+
+esphome:
+  name: wave-7
+  friendly_name: ${friendly_name}
+  platformio_options:
+    build_unflags: -Werror=all
+  on_boot:
+    light.turn_on:
+      id: backlight
+      brightness: 100%
+
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+logger:
+
+wifi: !include ../wifi.yaml
+
+ota:
+  platform: esphome
+
+ch422g:
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# Note: this requires a hardware modification to work - GPIO 13 must be connected to the backlight PWM pad.
+
+output:
+  - platform: ledc
+    id: backlight_output
+    pin: 13
+    frequency: 100Hz
+    inverted: false
+
+
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: LCD Backlight
+    id: backlight
+    restore_mode: ALWAYS_ON
+    default_transition_length: 0s
+    gamma_correct: 1.8
+
+i2c:
+  sda: 8
+  scl: 9
+  frequency: 400kHz
+  id: bus_a
+
+touchscreen:
+  - platform: gt911
+    address: 0x5D
+    id: my_touchscreen
+    interrupt_pin: 4
+    reset_pin:
+      ch422g:
+      number: 1
+    transform:
+      swap_xy: true
+      mirror_x: true
+      mirror_y: false
+    on_touch:
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x,
+              touch.y,
+              touch.x_raw,
+              touch.y_raw
+              );
+  
+
+power_supply:
+  - pin:
+      ch422g:
+      number: 6
+    enable_on_boot: true
+    id: lcd_vdd
+
+display:
+  - platform: rpi_dpi_rgb
+    rotation: 90
+    id: rpi_disp
+    update_interval: never
+    auto_clear_enabled: false
+    color_order: RGB
+    pclk_frequency: 16MHz
+    dimensions:
+      width: 800
+      height: 480
+    reset_pin:
+      ch422g:
+      number: 3
+    enable_pin:
+      ch422g:
+      number: 2
+    de_pin: 5
+    hsync_pin:
+      number: 46
+      ignore_strapping_warning: true
+    vsync_pin:
+      number: 3
+      ignore_strapping_warning: true
+    pclk_pin: 7
+    pclk_inverted: true
+# 7" 800x480 params
+    hsync_back_porch: 8
+    hsync_front_porch: 8
+    hsync_pulse_width: 4
+    vsync_back_porch: 16
+    vsync_front_porch: 16
+    vsync_pulse_width: 4
+
+    data_pins:
+      red:
+        - 1         #r3
+        - 2         #r4
+        - 42        #r5
+        - 41        #r6
+        - 40        #r7
+      blue:
+        - 14        #b3
+        - 38        #b4
+        - 18        #b5
+        - 17        #b6
+        - 10        #b7
+      green:
+        - 39        #g2
+        - 0         #g3
+        - 45        #g4
+        - 48        #g5
+        - 47        #g6
+        - 21        #g7
+
+
+uart:
+  - id: uart_485
+    rx_pin: 15
+    tx_pin: 16
+    baud_rate: 9600
+    debug:
+      direction: both
+      dummy_receiver: false
+  - id: serial
+    rx_pin: 44
+    tx_pin: 43
+    baud_rate: 115200
+    debug:
+      direction: both
+      dummy_receiver: false
+    
+
+interval:
+  - interval: 10s
+    then:
+      light.turn_on:
+        id: backlight
+        brightness: 100%
+
+lvgl:
+
