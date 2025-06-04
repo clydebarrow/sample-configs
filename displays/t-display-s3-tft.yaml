@@ -6,11 +6,6 @@ esp32:
   framework:
     type: esp-idf
 
-#external_components:
-#  - source: github://pr#8383
-#    components: [const, lvgl, mipi_spi, qspi_dbi, spi]
-#    refresh: 1h
-
 logger:
 
 output:
