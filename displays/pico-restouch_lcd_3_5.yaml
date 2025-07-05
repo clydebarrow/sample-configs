@@ -58,6 +58,6 @@ touchscreen:
 
 display:
   - platform: mipi_spi
-    model: pico_restouch_lcd_3_5
+    model: PICO-RESTOUCH-LCD-3.5
 
 lvgl:

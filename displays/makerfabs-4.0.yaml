@@ -11,13 +11,6 @@ esp32:
 
 logger:
 
-wifi: !include ../wifi.yaml
-
-api:
-
-ota:
-  platform: esphome
-
 psram:
   mode: octal
   speed: 80MHz

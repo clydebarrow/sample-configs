@@ -6,8 +6,6 @@ substitutions:
 esphome:
   name: wave-7
   friendly_name: ${friendly_name}
-  platformio_options:
-    build_unflags: -Werror=all
   on_boot:
     light.turn_on:
       id: backlight
@@ -16,20 +14,13 @@ esphome:
 
 esp32:
   board: esp32-s3-devkitc-1
+  cpu_frequency: 240MHz
   framework:
     type: esp-idf
-    sdkconfig_options:
-      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
+    advanced:
+      enable_idf_experimental_features: true
 
 logger:
-
-wifi: !include ../wifi.yaml
-
-ota:
-  platform: esphome
 
 ch422g:
 
@@ -71,18 +62,9 @@ touchscreen:
       ch422g:
       number: 1
     transform:
-      swap_xy: true
-      mirror_x: true
+      swap_xy: false
+      mirror_x: false
       mirror_y: false
-    on_touch:
-    - lambda: |-
-          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
-              touch.x,
-              touch.y,
-              touch.x_raw,
-              touch.y_raw
-              );
-  
 
 power_supply:
   - pin:
@@ -93,7 +75,6 @@ power_supply:
 
 display:
   - platform: rpi_dpi_rgb
-    rotation: 90
     id: rpi_disp
     update_interval: never
     auto_clear_enabled: false

@@ -4,20 +4,11 @@ substitutions:
 esphome: 
   name: jc3248w535
   friendly_name: ${friendly_name]
-  platformio_options: 
-    build_unflags: -Werror=all
-    board_build.flash_mode: dio
-    
 
 esp32: 
   board: esp32-s3-devkitc-1
   framework: 
     type: esp-idf
-    sdkconfig_options: 
-      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
 
 logger: 
 
@@ -39,6 +30,7 @@ power_supply:
 display: 
   - platform: mipi_spi
     model: jc3248w535
+    rotation: 90
       
 i2c: 
   sda: 4
@@ -48,16 +40,9 @@ i2c:
 touchscreen:
   platform: axs15231
   update_interval: 30ms
-  #interrupt_pin: GPIO3
   transform:
     swap_xy: true
     mirror_x: false
     mirror_y: true
-  on_touch:
-    logger.log:
-      format: "touched at %d/%d"
-      args: [touch.x, touch.y]
-  on_release:
-    logger.log: release
 
 lvgl:

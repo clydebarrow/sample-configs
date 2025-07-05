@@ -1,4 +1,4 @@
-
+# Not working - this is just a starting point
 #-------------------------------------------
 substitutions:
   name: lilygo-t-panel-s3
@@ -122,7 +122,7 @@ display:
         - GPIO8       #g2
         - GPIO9       #g3
         - GPIO1       #g4
-        - GPIO1 1     #g5
+        - GPIO11      #g5
       blue:
         - GPIO1       #b1
         - GPIO2       #b2
@@ -131,21 +131,3 @@ display:
         - GPIO5       #b5`
 
 lvgl:
-  widgets:
-  - slider:
-      id: lv_slider_t_id
-      align: center
-      on_value:
-      - light.turn_on:
-          id: lcd_backlight
-          brightness: !lambda return x / 100.0;
-  - button:
-      align: bottom_mid
-      widgets:
-        - label:
-            text: Beep
-      on_click:
-        then:
-          - switch.turn_on: buzzer
-          - delay: 1s
-          - switch.turn_off: buzzer

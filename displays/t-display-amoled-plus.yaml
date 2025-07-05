@@ -11,10 +11,6 @@ esp32:
 
 logger:
 
-external_components:
-  - source: github://clydebarrow/esphome@mipi-spi
-    components[mipi-spi, spi]
-
 spi:
   clk_pin: 47
   mosi_pin: 18
