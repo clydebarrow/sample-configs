@@ -1,0 +1,26 @@
+substitutions:
+  name: host
+  friendly_name: Host Display Test
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+  platformio_options:
+    build_flags: -g3
+
+host:
+
+logger:
+
+touchscreen:
+  - platform: sdl
+    id: sdl_touchscreen
+
+display:
+  - platform: sdl
+    dimensions:
+      width: 450
+      height: 600
+    show_test_card: true
+

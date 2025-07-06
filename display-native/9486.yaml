@@ -58,13 +58,8 @@ light:
 
 display:
   - platform: mipi_spi
-    data_rate: 80MHz
-    model: ili9481
-    init_sequence:
-    invert_colors: true
+    model: waveshare-4-tft
     dc_pin: GPIO27
-    rotation: 90
-    #reset_pin: GPIO21
     cs_pin:
       number: GPIO5
       ignore_strapping_warning: true

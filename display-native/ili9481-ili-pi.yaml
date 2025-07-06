@@ -63,10 +63,8 @@ display:
     init_sequence:
     invert_colors: true
     dc_pin: GPIO27
-    rotation: 90
-    #reset_pin: GPIO21
+    show_test_card: true
+    rotation: 270
     cs_pin:
       number: GPIO5
       ignore_strapping_warning: true
-
-lvgl:

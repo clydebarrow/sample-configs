@@ -1,0 +1,35 @@
+substitutions:
+  name: gca901
+  friendly_name: GCA901 Test on Pico
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: lolin_c3_mini
+  framework:
+    type: esp-idf
+
+logger:
+
+spi:
+  mosi_pin: GPIO7
+  clk_pin: GPIO6
+
+display:
+  - platform: mipi_spi
+    id: display_id
+    model: gc9a01a
+    invert_colors: true
+    cs_pin: GPIO5
+    dc_pin:
+      number: GPIO8
+      ignore_strapping_warning: true
+    reset_pin:
+      number: GPIO9
+      ignore_strapping_warning: true
+    rotation: 90
+
+lvgl:
+  buffer_size: 25%

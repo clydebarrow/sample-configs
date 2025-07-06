@@ -1,0 +1,73 @@
+esphome:
+  name: smalltv
+  friendly_name: SmallTV
+
+esp8266:
+  board: esp01_1m
+
+logger:
+
+# OTA required since serial port not readily accessible
+ota:
+  - platform: esphome
+
+wifi: !include wifi.yaml
+
+debug:
+
+spi:
+  clk_pin: GPIO14
+  mosi_pin: GPIO13
+  interface: hardware
+
+output:
+  - platform: esp8266_pwm
+    pin: GPIO05
+    frequency: 40 Hz
+    id: pwm_output
+
+light:
+  - platform: monochromatic
+    output: pwm_output
+    name: "Backlight"
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto_36
+    bpp: 4
+    size: 36
+
+image:
+  rgb565:
+    - file: cat.jpg
+      id: cat_img
+      resize: 100x100
+
+display:
+  - platform: mipi_spi
+    data_rate: 40MHz
+    model: st7789v
+    dimensions: 240x240
+    invert_colors: true
+    spi_mode: mode3
+    dc_pin: GPIO00
+    reset_pin: GPIO02
+    update_interval: 5s
+    id: disp
+    lambda: |-
+      it.filled_rectangle(0, 120, 240, 50, Color(255, 0, 0));
+      it.triangle(25, 5, 100, 5, 80, 25);
+      it.filled_triangle(115, 5, 95, 25, 125, 70);
+
+      it.filled_regular_polygon(170, 45, 20, EDGES_HEXAGON);
+      it.regular_polygon(170, 45, 40, EDGES_OCTAGON, VARIATION_FLAT_TOP);
+      it.line(0, 0, 100, 50);
+      it.rectangle(5, 60, 30, 130);
+      it.filled_rectangle(200, 60, 30, 100);
+      it.circle(20, 40, 10);
+      it.filled_circle(20, 75, 10);
+      it.filled_ring(75, 75, 30, 20);
+      it.filled_gauge(75, 140, 30, 20, 80);
+      it.image(80, 120, id(cat_img));
+      it.printf(30, 200, id(roboto_36), TextAlign::TOP_LEFT, "Hello World!");
+

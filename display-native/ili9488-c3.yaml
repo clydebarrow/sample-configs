@@ -1,0 +1,44 @@
+substitutions:
+  name: ili9488-c3
+  friendly_name: ILI9488 on C3
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+
+esp32:
+  board: lolin_c3_mini
+  framework:
+    type: esp-idf
+
+logger:
+
+power_supply:
+  - pin: GPIO0
+    id: backlight_output
+    enable_on_boot: true
+
+spi:
+  mosi_pin:
+    number: GPIO2
+    ignore_strapping_warning: true
+  clk_pin: GPIO1
+
+display:
+  - platform: mipi_spi
+    id: display_id
+    model: ili9488_a
+    cs_pin:
+      number: GPIO9
+      ignore_strapping_warning: true
+    dc_pin:
+      number: GPIO3
+    reset_pin:
+      number: GPIO4
+    data_rate: 40MHz
+    show_test_card: false
+    color_depth: 16
+
+lvgl:
+  buffer_size: 25%

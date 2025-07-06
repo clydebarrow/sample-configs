@@ -1,0 +1,69 @@
+# Sunton ESP32 2.8" 240x320 with touch
+
+esphome:
+  name: 2432s048-test
+
+esp32:
+  board: nodemcu-32s
+  framework:
+    type: arduino # Just for something different
+
+
+logger:
+
+output:
+  - platform: ledc
+    id: gpio_5_backlight_pwm
+    pin: 21
+    frequency: 44100
+    inverted: false
+
+light:
+  - platform: monochromatic
+    output: gpio_5_backlight_pwm
+    id: back_light
+    restore_mode: ALWAYS_ON
+
+spi:
+  - id: disp_spi
+    clk_pin: 14
+    mosi_pin: 13
+  - id: touch_spi
+    clk_pin: 25
+    mosi_pin: 32
+    miso_pin: 39
+
+touchscreen:
+  platform: xpt2046
+  spi_id: touch_spi
+  id: my_touchscreen
+  cs_pin: 33
+  #interrupt_pin: 36
+  update_interval: 50ms
+  threshold: 400
+  transform:
+    swap_xy: false
+    mirror_y: false
+    mirror_x: true
+  calibration:
+    x_min: 367
+    x_max: 3355
+    y_min: 296
+    y_max: 3642
+  on_touch:
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x,
+              touch.y,
+              touch.x_raw,
+              touch.y_raw
+              );
+
+display:
+  - platform: mipi_spi
+    spi_id: disp_spi
+    model: esp32-2432S028
+
+lvgl:
+  buffer_size: 25%
+

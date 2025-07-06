@@ -1,0 +1,74 @@
+# Config for Waveshare Pico-Res-Touch-LCD-3.5 with ESP32-S3-Pico
+
+substitutions:
+  name: wave-35
+  friendly_name: Waveshare 3.5 ILI9488
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+    #type: esp-idf
+
+
+logger:
+
+psram:
+  speed: 80MHz
+  mode: quad
+
+spi:
+  - id: spi_id_1
+    clk_pin: 35
+    mosi_pin: 36
+    miso_pin: 37
+
+power_supply:
+  - id: lcd_bl
+    pin: GPIO38
+    enable_on_boot: true
+
+touchscreen:
+  - platform: xpt2046
+    id: my_touchscreen
+    cs_pin: GPIO42
+    #interrupt_pin: GPIO41
+    update_interval: 50ms
+    transform:
+      mirror_x: true
+      mirror_y: true
+      swap_xy: false
+    threshold: 400
+    calibration:
+      x_min: 280
+      x_max: 3860
+      y_min: 340
+      y_max: 3860
+    on_touch:
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x,
+              touch.y,
+              touch.x_raw,
+              touch.y_raw
+              );
+
+display:
+  - platform: mipi_spi
+    spi_16: true
+    pixel_mode: 16bit
+    model: waveshare-4-tft
+    #model: ili9488
+    dc_pin: GPIO33
+    cs_pin: GPIO34
+    reset_pin: GPIO40
+    data_rate: 20MHz
+    invert_colors: true
+    show_test_card: true
+
+#lvgl:

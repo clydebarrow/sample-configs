@@ -1,0 +1,152 @@
+# Lilygo T-Display-S3-Pro
+# To flash this to the device:
+# With the device plugged in via USB:
+#  - install ESPHome:
+#       pip install esphome
+#  - build and run:
+#       esphome run t-display-s3-pro.yaml
+
+
+esphome:
+  name: t-display-s3-pro
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  deassert_rts_dtr: true
+
+external_components:
+  - source: github://clydebarrow/esphome@mipi-spi
+    components: [spi,mipi_spi]
+
+power_supply:
+  - id: backlight
+    pin: 48
+    enable_on_boot: true
+
+spi:
+  clk_pin: 18
+  mosi_pin: 17
+
+i2c:
+  - scl: 6
+    sda: 5
+    scan: true
+    id: i2c_onboard
+    frequency: 400kHz
+
+touchscreen:
+  - platform: cst226
+    interrupt_pin: 21
+    reset_pin: 13
+    on_touch:
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x, touch.y, touch.x_raw, touch.y_raw);
+
+binary_sensor:
+  - platform: cst226
+    id: cst226_sensor
+    on_click:
+      - logger.log: Sensor clicked
+
+
+display:
+  - platform: mipi_spi
+    model: t-display-s3-pro
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+image:
+  - id: logo_img
+    file: logo.svg
+    type: rgb565
+    transparency: alpha_channel
+    resize: 140x140
+
+font:
+  - file:
+      type: gfonts
+      family: Figtree
+      weight: 600
+    id: helv30
+    bpp: 2
+    size: 30
+
+lvgl:
+  theme:
+    label:
+      text_color: 0xFFFFFF
+    slider:
+      bg_color: 0x808080
+      bg_opa: cover
+    checkbox:
+      text_color: 0xFFFFFF
+
+  widgets:
+    - obj:
+        bg_color: 0x202020
+        radius: 0
+        pad_all: 12
+        height: 100%
+        width: 100%
+        widgets:
+        - image:
+            align: center
+            y: 100
+            src: logo_img
+        - spinner:
+            id: hello_world_spinner_
+            align: center
+            y: -100
+            indicator:
+              arc_color: tomato
+            height: 100
+            width: 100
+            spin_time: 2s
+            arc_length: 60deg
+        - label:
+            id: hello_world_label_
+            text: "ESPhome!"
+            text_font: helv30
+            align: center
+            on_click:
+                lvgl.spinner.update:
+                  id: hello_world_spinner_
+                  arc_color: springgreen
+        - checkbox:
+            pad_all: 8
+            text: Checkbox
+            align: top_right
+            on_click:
+              lvgl.label.update:
+                id: hello_world_label_
+                text: "Checked!"
+        - button:
+            pad_all: 8
+            checkable: true
+            align: top_left
+            text_font: montserrat_20
+            on_click:
+              lvgl.label.update:
+                id: hello_world_label_
+                text: "Clicked!"
+            widgets:
+              - label:
+                  text: "Button"
+        - slider:
+            width: 80%
+            align: bottom_mid
+            on_value:
+              lvgl.label.update:
+                id: hello_world_label_
+                text:
+                  format: "%.0f%%"
+                  args: [x]
+

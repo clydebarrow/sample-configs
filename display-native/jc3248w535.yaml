@@ -1,0 +1,48 @@
+substitutions: 
+  friendly_name: JC3248W535 with AXS15231
+
+esphome: 
+  name: jc3248w535
+  friendly_name: ${friendly_name]
+
+esp32: 
+  board: esp32-s3-devkitc-1
+  framework: 
+    type: esp-idf
+
+logger: 
+
+psram: 
+  mode: octal
+  speed: 80MHz
+
+spi: 
+  id: display_qspi
+  type: quad
+  clk_pin: 47
+  data_pins: [21,48,40,39]
+
+power_supply:
+  id: backlight_id
+  pin: 1
+  enable_on_boot: true
+
+i2c: 
+  sda: 4
+  scl: 8
+  frequency: 400kHz
+
+touchscreen:
+  platform: axs15231
+  update_interval: 30ms
+  transform:
+    swap_xy: true
+    mirror_x: false
+    mirror_y: true
+
+display: 
+  - platform: mipi_spi
+    model: jc3248w535
+    rotation: 90
+    show_test_card: true
+      

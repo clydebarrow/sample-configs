@@ -1,0 +1,60 @@
+esphome:
+  name: wt32-sc01-plus
+
+esp32:
+  board: esp32-s3-devkitc-1
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+
+logger:
+
+power_supply:
+  - id: backlight
+    enable_on_boot: true
+    pin:
+      ignore_strapping_warning: true
+      number: GPIO45
+
+i2c:
+  frequency: 400kHz
+  sda: 6
+  scl: 5
+
+touchscreen:
+  - platform: ft63x6
+    id: my_touchscreen
+    interrupt_pin: 7
+    transform:
+      swap_xy: true
+      mirror_y: true
+      mirror_x: false
+
+psram:
+  speed: 80MHz
+
+spi:
+  - type: octal
+    id: octal_spi
+    clk_pin: 47
+    data_pins: 
+      - 9
+      - ignore_strapping_warning: true
+        number: 46
+      - ignore_strapping_warning: true
+        number: 3
+      - 8
+      - 18
+      - 17
+      - 16
+      - 15
+  
+
+display:
+  - platform: mipi_spi
+    id: w32_disp
+    model: wt32-sc01-plus
+    data_rate: 10MHz
+    rotation: 90
+
+lvgl:
