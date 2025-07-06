@@ -65,5 +65,4 @@ display:
     model: esp32-2432S028
 
 lvgl:
-  buffer_size: 25%
 
