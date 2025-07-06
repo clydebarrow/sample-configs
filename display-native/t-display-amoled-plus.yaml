@@ -45,4 +45,3 @@ psram:
   mode: octal
   speed: 80MHz
 
-lvgl:

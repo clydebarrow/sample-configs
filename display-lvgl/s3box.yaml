@@ -2,21 +2,11 @@
 esphome:
   name: esp32-s3-box
   friendly_name: ESP32 S3 Box
-  platformio_options:
-    upload_speed: 921600
-  project:
-    name: esphome.voice-assistant
-    version: "1.0"
-  #min_version: 2023.11.0b5
 
 esp32:
   board: esp32s3box
   framework:
     type: esp-idf
-    sdkconfig_options:
-      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_160: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
 
 logger:
 
@@ -34,6 +24,7 @@ i2c:
   - scl: 18
     sda: 8
     id: i2c_onboard
+    frequency: 400kHz
 
 spi:
   mosi_pin: 6

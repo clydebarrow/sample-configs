@@ -34,10 +34,6 @@ display:
     cs_pin: 11
     reset_pin: 13
     enable_pin: 9
-    transform:
-      swap_xy: true
-      mirror_x: true
-    rotation: 270
 
 psram:
   mode: octal

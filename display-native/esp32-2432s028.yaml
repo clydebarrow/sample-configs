@@ -8,7 +8,6 @@ esp32:
   framework:
     type: arduino # Just for something different
 
-
 logger:
 
 output:
@@ -63,7 +62,7 @@ display:
   - platform: mipi_spi
     spi_id: disp_spi
     model: esp32-2432S028
-
-lvgl:
-  buffer_size: 25%
+    show_test_card: true
+    color_depth: 8bit
+    pixel_mode: 18bit
 

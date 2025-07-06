@@ -54,13 +54,10 @@ display:
     data_rate: 40MHz
     cs_pin: 21
     dc_pin: 17
+    pixel_mode: 18bit
     reset_pin:
       ignore_strapping_warning: true
       number: 5
-    transform:
-      swap_xy: true
-      mirror_x: false
+    show_test_card: true
 
-lvgl:
-  buffer_size: 25%
 

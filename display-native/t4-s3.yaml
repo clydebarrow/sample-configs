@@ -29,18 +29,8 @@ touchscreen:
 display:
   - platform: mipi_spi
     model: T4-S3
-    data_rate: 80MHz
-    spi_mode: mode0
-    cs_pin: 11
-    reset_pin: 13
-    enable_pin: 9
-    transform:
-      swap_xy: true
-      mirror_x: true
-    rotation: 270
 
 psram:
   mode: octal
   speed: 80MHz
 
-lvgl:

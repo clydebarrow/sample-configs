@@ -44,6 +44,3 @@ psram:
 display:
   - platform: mipi_spi
     model: t-display-s3
-    rotation: 270
-
-lvgl:

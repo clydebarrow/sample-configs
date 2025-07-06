@@ -5,14 +5,18 @@ esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: esp-idf
+    
+psram:
+  mode: octal
+  speed: 80MHz
 
 logger:
 
-binary_sensor:
-  - platform: cst816
-    id: cst816_sensor
-    on_click:
-      - logger.log: Sensor clicked
+#binary_sensor:
+  #- platform: cst816
+    #id: cst816_sensor
+    #on_click:
+      #- logger.log: Sensor clicked
 
 spi:
   id: quad_spi
@@ -37,17 +41,6 @@ touchscreen:
           }
 display:
   - platform: mipi_spi
-    #model: custom
-    #model: rm67162
     model: t-display-s3-amoled
     id: main_lcd
-    cs_pin: 6
-    reset_pin: 17
-    enable_pin: 38
-    rotation: 90
 
-psram:
-  mode: octal
-  speed: 80MHz
-
-lvgl:

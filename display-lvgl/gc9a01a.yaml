@@ -14,15 +14,16 @@ esp32:
 logger:
 
 spi:
-  mosi_pin: GPIO7
-  clk_pin: GPIO6
+  mosi_pin: GPIO6
+  clk_pin: GPIO4
 
 display:
   - platform: mipi_spi
+    enable_pin: GPIO10
     id: display_id
     model: gc9a01a
     invert_colors: true
-    cs_pin: GPIO5
+    cs_pin: GPIO7
     dc_pin:
       number: GPIO8
       ignore_strapping_warning: true
@@ -32,4 +33,3 @@ display:
     rotation: 90
 
 lvgl:
-  buffer_size: 25%

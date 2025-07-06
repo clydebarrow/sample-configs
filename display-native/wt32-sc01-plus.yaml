@@ -49,7 +49,6 @@ spi:
       - 16
       - 15
   
-
 display:
   - platform: mipi_spi
     id: w32_disp
@@ -57,4 +56,3 @@ display:
     data_rate: 10MHz
     rotation: 90
 
-lvgl:

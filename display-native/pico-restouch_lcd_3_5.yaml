@@ -60,4 +60,3 @@ display:
   - platform: mipi_spi
     model: PICO-RESTOUCH-LCD-3.5
 
-lvgl:

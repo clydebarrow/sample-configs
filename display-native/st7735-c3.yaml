@@ -41,6 +41,5 @@ display:
       number: GPIO3
     reset_pin:
       number: GPIO4
+    show_test_card: true
 
-lvgl:
-  buffer_size: 25%

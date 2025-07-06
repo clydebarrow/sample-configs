@@ -48,4 +48,3 @@ touchscreen:
   interrupt_pin: GPIO41
   reset_pin: GPIO40
 
-lvgl:

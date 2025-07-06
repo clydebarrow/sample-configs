@@ -42,6 +42,3 @@ display:
     id: ili_disp
     model: t-embed
 
-
-lvgl:
-
