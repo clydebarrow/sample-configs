@@ -12,10 +12,10 @@ esp32:
   framework:
     type: esp-idf
 
-#external_components:
-  #- source: github://pr#9892
-    #components: [mipi, mipi_rgb]
-    #refresh: 1h
+external_components:
+  - source: github://pr#9892
+    components: [mipi, mipi_rgb]
+    refresh: 1h
 
 logger:
 
@@ -68,3 +68,5 @@ output:
 display:
   - platform: mipi_rgb
     model: t-panel-s3
+
+lvgl:

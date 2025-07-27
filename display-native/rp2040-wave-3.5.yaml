@@ -1,0 +1,59 @@
+substitutions:
+  name: rp2040-wave-3-5
+  friendly_name: RP2050 Wave 3.5
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+
+rp2040:
+  board: rpipicow
+
+wifi: !include wifi.yaml
+
+ota:
+  platform: esphome
+
+api:
+
+logger:
+  level: DEBUG
+  hardware_uart: uart0
+
+spi:
+  - id: spi_id_1
+    clk_pin: 10
+    mosi_pin: 11
+    miso_pin: 12
+
+#touchscreen:
+#  platform: xpt2046
+#  id: my_touchscreen
+#  cs_pin: 16
+#  interrupt_pin: 17
+#  update_interval: 50ms
+#  transform:
+#    mirror_x: true
+#    swap_xy: true
+#  threshold: 400
+#  calibration:
+#    x_min: 280
+#    x_max: 3860
+#    y_min: 340
+#    y_max: 3860
+
+display:
+  - platform: mipi_spi
+    id: wave_disp
+    model: PICO-RESTOUCH-LCD-3.5
+    transform:
+      mirror_x: false
+      mirror_y: true
+      swap_xy: false
+    cs_pin: GPIO9
+    dc_pin: GPIO8
+    reset_pin: GPIO15
+    data_rate: 80MHz
+
+lvgl:

@@ -1,0 +1,73 @@
+esphome:
+  name: indicator
+
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+    #advanced:
+      #execute_from_psram: true
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  hardware_uart: UART0
+  level: DEBUG
+
+output:
+  - platform: ledc
+    pin: 
+      number: GPIO45
+      ignore_strapping_warning: true
+    id: ledc_gpio4
+    frequency: 1120Hz
+    
+    
+light:
+  - platform: monochromatic
+    output: ledc_gpio4
+    name: Display Backlight
+    id: disp_bl
+    restore_mode: ALWAYS_ON
+
+spi:
+  - id: lcd_spi
+    clk_pin: 41
+    mosi_pin: 48
+
+i2c:
+  sda: 39
+  scl: 40
+  scan: false
+  id: bus_a
+
+
+# I/O expander. Touchscreen RESET and INTERRUPT are not used.
+pca9554:
+  - id: p_c_a
+    pin_count: 16
+    address: 0x20
+
+touchscreen:
+  - platform: ft5x06
+    id: ft5x06_touchscreen
+    transform:
+      mirror_x: true
+      mirror_y: true
+    on_touch:
+      logger.log:
+        format: "Touch at %d/%d"
+        args: [touch.x, touch.y]
+
+display:
+  - platform: mipi_rgb
+    model: seeed-indicator-d1
+    dimensions:
+      height: 440
+      width: 480
+
+lvgl:

@@ -1,6 +1,6 @@
 substitutions:
-  name: lilygo-t-panel-s3
-  friendly_name: Lilygo T-Panel S3
+  name: lilygo-t-rgb-2-1
+  friendly_name: Lilygo T-RGB-2.1
 
 esphome:
   name: "${name}"
@@ -20,23 +20,31 @@ esp32:
 logger:
 
 psram:
+  mode: octal
   speed: 80MHz
 
 i2c:
   - id: tp_i2c
-    sda: 17
-    scl: 18
+    sda: 8
+    scl: 48
     scan: true
     frequency: 400kHz
 
 xl9535:
   id: expander
 
-#touchscreen:
-  #- platform: gt911
-    #i2c_id: tp_i2c
-    #id: my_touchscreen
-    #update_interval: 16ms
+touchscreen:
+  - platform: cst816
+    reset_pin:
+      xl9535: expander
+      number: 1
+    update_interval: 16ms
+    skip_probe: true
+    interrupt_pin: 1
+    on_touch:
+      logger.log:
+        format: "Touch at %d/%d"
+        args: [touch.x, touch.y]
 
 light:
   - platform: monochromatic
@@ -52,19 +60,19 @@ spi:
     interface: software
     mosi_pin:
       xl9535:
-      number: 16
+      number: 4
     clk_pin:
       xl9535:
-      number: 15
+      number: 5
 
 output:
   - platform: ledc
     id: backlight_output
-    pin: 14
+    pin: 46
     frequency: 1220Hz
     inverted: false
     min_power: 15%
 
 display:
   - platform: mipi_rgb
-    model: t-panel-s3
+    model: t-rgb-2.1

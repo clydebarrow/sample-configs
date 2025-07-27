@@ -1,14 +1,48 @@
+[11:04:09][D][display.st7701s:136]: Write cmd 1, data
+[11:04:09][D][display.st7701s:136]: Write cmd FF, data 77.01.00.00.10 (5)
+[11:04:09][D][display.st7701s:136]: Write cmd C0, data 3B.00
+[11:04:09][D][display.st7701s:136]: Write cmd C1, data 0D.02
+[11:04:09][D][display.st7701s:136]: Write cmd C2, data 31.05
+[11:04:09][D][display.st7701s:136]: Write cmd CD, data 08
+[11:04:09][D][display.st7701s:136]: Write cmd B0, data 00.11.18.0E.11.06.07.08.07.22.04.12.0F.AA.31.18 (16)
+[11:04:09][D][display.st7701s:136]: Write cmd B1, data 00.11.19.0E.12.07.08.08.08.22.04.11.11.A9.32.18 (16)
+[11:04:09][D][display.st7701s:136]: Write cmd FF, data 77.01.00.00.11 (5)
+[11:04:09][D][display.st7701s:136]: Write cmd B0, data 60
+[11:04:09][D][display.st7701s:136]: Write cmd B1, data 32
+[11:04:09][D][display.st7701s:136]: Write cmd B2, data 07
+[11:04:09][D][display.st7701s:136]: Write cmd B3, data 80
+[11:04:09][D][display.st7701s:136]: Write cmd B5, data 49
+[11:04:09][D][display.st7701s:136]: Write cmd B7, data 85
+[11:04:09][D][display.st7701s:136]: Write cmd B8, data 21
+[11:04:09][D][display.st7701s:136]: Write cmd C1, data 78
+[11:04:09][D][display.st7701s:136]: Write cmd C2, data 78
+[11:04:09][D][display.st7701s:136]: Write cmd E0, data 00.1B.02
+[11:04:09][D][display.st7701s:136]: Write cmd E1, data 08.A0.00.00.07.A0.00.00.00.44.44 (11)
+[11:04:09][D][display.st7701s:136]: Write cmd E2, data 11.11.44.44.ED.A0.00.00.EC.A0.00.00 (12)
+[11:04:09][D][display.st7701s:136]: Write cmd E3, data 00.00.11.11
+[11:04:09][D][display.st7701s:136]: Write cmd E4, data 44.44
+[11:04:09][D][display.st7701s:136]: Write cmd E5, data 0A.E9.D8.A0.0C.EB.D8.A0.0E.ED.D8.A0.10.EF.D8.A0 (16)
+[11:04:09][D][display.st7701s:136]: Write cmd E6, data 00.00.11.11
+[11:04:09][D][display.st7701s:136]: Write cmd E7, data 44.44
+[11:04:09][D][display.st7701s:136]: Write cmd E8, data 09.E8.D8.A0.0B.EA.D8.A0.0D.EC.D8.A0.0F.EE.D8.A0 (16)
+[11:04:09][D][display.st7701s:136]: Write cmd EB, data 02.00.E4.E4.88.00.40 (7)
+[11:04:09][D][display.st7701s:136]: Write cmd EC, data 3C.00
+[11:04:09][D][display.st7701s:136]: Write cmd ED, data AB.89.76.54.02.FF.FF.FF.FF.FF.FF.20.45.67.98.BA (16)
+[11:04:09][D][display.st7701s:136]: Write cmd FF, data 77.01.00.00.13 (5)
+[11:04:09][D][display.st7701s:136]: Write cmd E5, data E4
+[11:04:09][D][display.st7701s:136]: Write cmd 3A, data 60
+[11:04:09][D][display.st7701s:136]: Write cmd FF, data 77.01.00.00.10 (5)
+[11:04:09][D][display.st7701s:136]: Write cmd CD, data 00
+[11:04:09][D][display.st7701s:136]: Write cmd FF, data 77.01.00.00.10 (5)
+[11:04:09][D][display.st7701s:166]: write MADCTL 10
 
-1
-6
-7
-8
-9
-10
-11
-20
-21
-22
-23
-24
-26
+
+[11:17:41][D][display.mipi_rgb:301]: Write command E5, length 1, byte(s) E4
+[11:17:41][D][display.mipi_rgb:301]: Write command FF, length 5, byte(s) 77.01.00.00.10
+[11:17:41][D][display.mipi_rgb:301]: Write command CD, length 1, byte(s) 00
+[11:17:41][D][display.mipi_rgb:301]: Write command 3A, length 1, byte(s) 60
+[11:17:41][D][display.mipi_rgb:301]: Write command 36, length 1, byte(s) 08
+[11:17:41][D][display.mipi_rgb:301]: Write command C7, length 1, byte(s) 00
+[11:17:41][D][display.mipi_rgb:301]: Write command 20, length 0, byte(s)
+[11:17:41][D][display.mipi_rgb:301]: Write command 11, length 0, byte(s)
+[11:17:41][D][display.mipi_rgb:301]: Write command 29, length 0, byte(s)
