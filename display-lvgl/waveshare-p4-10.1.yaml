@@ -17,6 +17,7 @@ esp32:
 
 
 external_components:
+# For the backlight
   - source: github://pr#9879
     components: [mipi_dsi]
     refresh: 1h
