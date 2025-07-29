@@ -71,4 +71,4 @@ display:
     invert_colors: true
     show_test_card: true
 
-#lvgl:
+lvgl:

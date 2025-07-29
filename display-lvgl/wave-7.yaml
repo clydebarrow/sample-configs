@@ -69,3 +69,5 @@ touchscreen:
 display:
   - platform: mipi_rgb
     model: ESP32-S3-TOUCH-LCD-7-800X480
+
+lvgl:

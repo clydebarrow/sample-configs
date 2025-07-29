@@ -1,0 +1,88 @@
+substitutions:
+  name: waveshare-p4-10-1
+  friendly_name: Waveshare P4 10.1
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-p4-evboard
+  flash_size: 16MB
+  cpu_frequency: 400MHz
+  framework:
+    type: esp-idf
+    advanced:
+      enable_idf_experimental_features: yes
+
+
+external_components:
+  - source: github://pr#9879
+    components: [mipi_dsi]
+    refresh: 1h
+
+logger:
+  level: debug
+  hardware_uart: UART0
+
+psram:
+  speed: 200MHz
+
+debug:
+
+api:
+
+esp_ldo:
+  - channel: 3
+    voltage: 2.5V
+
+esp32_hosted:
+  variant: ESP32C6
+  reset_pin: GPIO54
+  cmd_pin: GPIO19
+  clk_pin: GPIO18
+  d0_pin: GPIO14
+  d1_pin: GPIO15
+  d2_pin: GPIO16
+  d3_pin: GPIO17
+  active_high: true
+
+ota:
+  - platform: esphome
+
+wifi: !include wifi.yaml
+
+display:
+  - platform: mipi_dsi
+    model: WAVESHARE-P4-NANO-10.1
+    rotation: 90
+
+i2c:
+  sda: GPIO7
+  scl: GPIO8
+  frequency: 400kHz
+
+touchscreen:
+  - platform: gt911
+    id: touchscreen_
+    transform:
+      swap_xy: true
+      mirror_y: true
+      mirror_x: false
+
+light:
+  - platform: mipi_dsi
+    id: backlight_id
+    pwm_register: 0x86
+
+lvgl:
+  byte_order: little_endian
+  widgets:
+  - slider:
+      id: lv_slider_t_id
+      align: center
+      value: 50
+      on_value:
+      - light.turn_on:
+          id: backlight_id
+          brightness: !lambda return x / 100.0;

@@ -1,0 +1,97 @@
+# For Waveshare 4.3
+
+esphome:
+  name: wave-4-3
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+
+logger:
+  level: verbose
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  sda: 8
+  scl: 9
+  frequency: 400kHz
+  scan: false
+  id: bus_a
+
+
+touchscreen:
+  - platform: gt911
+    address: 0x5D
+    id: my_touchscreen
+    update_interval: 16ms
+    interrupt_pin: 4
+    reset_pin:
+      ch422g:
+      number: 1
+
+display:
+  - platform: mipi_rgb
+    model: ESP32-S3-Touch-LCD-4.3
+    id: rpi_disp
+#    color_order: RGB
+#    pclk_frequency: 16MHz
+#    dimensions:
+#      width: 800
+#      height: 480
+#    reset_pin:
+#      ch422g:
+#      number: 3
+#    enable_pin:
+#      ch422g:
+#      number: 2
+#    de_pin:
+#      number: 5
+#    hsync_pin:
+#      number: 46
+#      ignore_strapping_warning: true
+#    vsync_pin:
+#      number: 3
+#      ignore_strapping_warning: true
+#    pclk_pin: 7
+#    pclk_inverted: true
+#    hsync_back_porch: 30
+#    hsync_front_porch: 210
+#    hsync_pulse_width: 30
+#    vsync_back_porch: 4
+#    vsync_front_porch: 4
+#    vsync_pulse_width: 4
+#    data_pins:
+#      red:
+#        - 1         #r3
+#        - 2         #r4
+#        - 42        #r5
+#        - 41        #r6
+#        - 40        #r7
+#      blue:
+#        - 14        #b3
+#        - 38        #b4
+#        - 18        #b5
+#        - 17        #b6
+#        - 10        #b7
+#      green:
+#        - 39        #g2
+#        - 0         #g3
+#        - 45        #g4
+#        - 48        #g5
+#        - 47        #g6
+#        - 21        #g7
+
+ch422g:
+
+lvgl:
+

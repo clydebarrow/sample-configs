@@ -1,0 +1,38 @@
+esphome:
+  name: makerfabs-4
+
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+
+spi:
+  - id: lcd_spi
+    clk_pin: 12
+    mosi_pin: 11
+
+i2c:
+  sda: 17
+  scl: 18
+  scan: true
+  id: bus_a
+
+
+touchscreen:
+  - platform: gt911
+
+display:
+  - platform: mipi_rgb
+    model: MAKERFABS-4
+
+lvgl:
