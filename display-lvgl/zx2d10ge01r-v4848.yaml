@@ -1,0 +1,49 @@
+esphome:
+  name: zx2d10ge01r-v4848
+
+esp32:
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+external_components:
+  - source: github://pr#9892
+    components: [mipi, mipi_rgb]
+    refresh: 1h
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+
+spi:
+  ### DISPLAY
+  clk_pin:
+    number: 47
+    allow_other_uses: true
+  mosi_pin:
+    number: 41
+    allow_other_uses: true
+
+
+output:
+  - platform: ledc
+    id: display_led
+    pin: 38
+    zero_means_zero: true
+
+light:
+  - platform: monochromatic
+    id: backlight
+    output: display_led
+    name: Backlight
+    icon: mdi:brightness-percent
+    default_transition_length: 500ms
+    restore_mode: ALWAYS_ON
+
+display:
+  - platform: mipi_rgb
+    model: zx2d10ge01r-v4848
+
+lvgl:
