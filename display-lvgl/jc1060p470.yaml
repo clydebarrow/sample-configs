@@ -1,0 +1,72 @@
+substitutions:
+  name: jc1060p470
+  friendly_name: Guition P4
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  variant: esp32p4
+  flash_size: 16MB
+  cpu_frequency: 400MHz
+  framework:
+    type: esp-idf
+    advanced:
+      enable_idf_experimental_features: yes
+
+
+logger:
+
+psram:
+  speed: 200MHz
+
+debug:
+
+esp32_hosted:
+  variant: ESP32C6
+  reset_pin: GPIO54
+  cmd_pin: GPIO19
+  clk_pin: GPIO18
+  d0_pin: GPIO14
+  d1_pin: GPIO15
+  d2_pin: GPIO16
+  d3_pin: GPIO17
+  active_high: true
+
+ota:
+  - platform: esphome
+
+wifi: !include wifi.yaml
+
+switch:
+  - id: backlight_
+    platform: gpio
+    pin: GPIO23
+    restore_mode: ALWAYS_ON
+
+esp_ldo:
+  - channel: 3
+    voltage: 2.5V
+
+display:
+  - platform: mipi_dsi
+    model: JC1060P470
+
+
+i2c:
+  sda: GPIO7
+  scl: GPIO8
+  scan: true
+  frequency: 400kHz
+
+touchscreen:
+  - platform: gt911
+    id: touchscreen_
+    on_touch:
+      - logger.log:
+          format: "Touch at %d/%d"
+          args: [touch.x, touch.y]
+
+lvgl:
+  byte_order: little_endian
