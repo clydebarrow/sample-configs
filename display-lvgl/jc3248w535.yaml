@@ -10,6 +10,7 @@ esp32:
   framework: 
     type: esp-idf
 
+
 logger: 
 
 psram: 
@@ -30,19 +31,18 @@ power_supply:
 display: 
   - platform: mipi_spi
     model: jc3248w535
-    rotation: 90
       
 i2c: 
   sda: 4
   scl: 8
   frequency: 400kHz
 
+external_components:
+  #- source: github://esphome/esphome@2025.7.1
+    #components: [i2c]
+
 touchscreen:
   platform: axs15231
   update_interval: 30ms
-  transform:
-    swap_xy: true
-    mirror_x: false
-    mirror_y: true
 
 lvgl:

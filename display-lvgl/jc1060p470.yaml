@@ -39,11 +39,19 @@ ota:
 
 wifi: !include wifi.yaml
 
-switch:
-  - id: backlight_
-    platform: gpio
+output:
+  - id: backlight_output
+    platform: ledc
     pin: GPIO23
+
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: LCD Backlight
+    id: lcd_backlight
     restore_mode: ALWAYS_ON
+    default_transition_length: 0s
+    gamma_correct: 1.0
 
 esp_ldo:
   - channel: 3
@@ -52,7 +60,6 @@ esp_ldo:
 display:
   - platform: mipi_dsi
     model: JC1060P470
-
 
 i2c:
   sda: GPIO7
