@@ -1,0 +1,51 @@
+substitutions:
+  name: reterminal-e1002
+  friendly_name: Reterminal e1002
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+
+esp32:
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+packages:
+  - !include wifi.yaml
+
+psram:
+  mode: octal
+
+api:
+
+logger:
+  hardware_uart: UART0
+
+ota:
+  - platform: esphome
+
+spi:
+  clk_pin: GPIO7
+  mosi_pin: GPIO9
+
+i2c:
+  - sda: 19
+    scl: 20
+    scan: true
+  - sda: 39
+    scl: 40
+    scan: true
+
+display:
+  - platform: epaper_spi
+    id: epaper_display
+    model: Seeed-reTerminal-E1002
+    update_interval: 60s
+    dimensions:
+      width: 800
+      height: 480
+
+lvgl:
+
