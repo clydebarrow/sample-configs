@@ -12,19 +12,11 @@ esp32:
   framework:
     type: esp-idf
 
-packages:
-  - !include wifi.yaml
-
 psram:
   mode: octal
 
-api:
-
 logger:
   hardware_uart: UART0
-
-ota:
-  - platform: esphome
 
 spi:
   clk_pin: GPIO7
@@ -43,9 +35,6 @@ display:
     id: epaper_display
     model: Seeed-reTerminal-E1002
     update_interval: 60s
-    dimensions:
-      width: 800
-      height: 480
 
 lvgl:
 

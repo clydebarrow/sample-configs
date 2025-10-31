@@ -37,10 +37,6 @@ i2c:
   scl: 8
   frequency: 400kHz
 
-external_components:
-  #- source: github://esphome/esphome@2025.7.1
-    #components: [i2c]
-
 touchscreen:
   platform: axs15231
   update_interval: 30ms
