@@ -40,5 +40,3 @@ display:
     show_test_card: false
     color_depth: 16
 
-lvgl:
-  buffer_size: 25%
