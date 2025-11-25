@@ -37,6 +37,4 @@ display:
     reset_pin:
       number: GPIO4
     data_rate: 40MHz
-    show_test_card: false
-    color_depth: 16
 
