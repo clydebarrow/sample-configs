@@ -25,18 +25,13 @@ display:
   - platform: mipi_spi
     enable_pin: 3 # backlight
     id: display_id
-    model: gc9a01a
-    invert_colors: true
-    buffer_size: 25%
-    cs_pin: GPIO10
-    dc_pin:
-      number: GPIO2
-      ignore_strapping_warning: true
+    model: esp32-2424s012
     rotation: 90
 
 i2c:
   scl: 5
   sda: 4
+  frequency: 400kHz
 
 
 #touchscreen:
@@ -44,4 +39,3 @@ i2c:
     #interrupt_pin: 0
     #reset_pin: 1
     
-#lvgl:

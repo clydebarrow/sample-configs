@@ -1,0 +1,39 @@
+esphome:
+  name: zx2d10ge01r-v4848
+
+esp32:
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+external_components:
+  #- source: github://pr#9892
+    #components: [mipi, mipi_rgb]
+    #refresh: 1h
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+
+spi:
+  clk_pin:
+    number: GPIO13
+    allow_other_uses: true
+  mosi_pin:
+    number: GPIO12
+    allow_other_uses: true
+
+switch:
+  - name: "Backlight"
+    id: backlight
+    platform: gpio
+    pin: GPIO7
+    inverted: True
+    restore_mode: ALWAYS_ON
+
+display:
+  - platform: mipi_rgb
+    model: uedx48480021-md80et
+

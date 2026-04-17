@@ -6,11 +6,6 @@ esp32:
   framework:
     type: esp-idf
 
-external_components:
-  - source: github://pr#9892
-    components: [mipi, mipi_rgb]
-    refresh: 1h
-
 psram:
   mode: octal
   speed: 80MHz
