@@ -56,7 +56,6 @@ wifi: !include wifi.yaml
 display:
   - platform: mipi_dsi
     model: WAVESHARE-P4-NANO-10.1
-    rotation: 90
 
 i2c:
   sda: GPIO7
@@ -66,10 +65,6 @@ i2c:
 touchscreen:
   - platform: gt911
     id: touchscreen_
-    transform:
-      swap_xy: true
-      mirror_y: true
-      mirror_x: false
 
 light:
   - platform: mipi_dsi
@@ -78,6 +73,7 @@ light:
 
 lvgl:
   byte_order: little_endian
+  rotation: 90
   widgets:
   - slider:
       id: lv_slider_t_id

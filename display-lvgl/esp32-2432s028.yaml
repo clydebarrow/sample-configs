@@ -6,7 +6,7 @@ esphome:
 esp32:
   board: nodemcu-32s
   framework:
-    type: arduino # Just for something different
+    type: esp-idf
 
 
 logger:
@@ -62,7 +62,9 @@ touchscreen:
 display:
   - platform: mipi_spi
     spi_id: disp_spi
-    model: esp32-2432S028
+    model: esp32-2432S028 # uses ili9341
+    #model: esp32-2432S028-9342 # Uses ILI9342
+    #model: esp32-2432S028-7789 # Uses ST7789V controller
 
 lvgl:
 

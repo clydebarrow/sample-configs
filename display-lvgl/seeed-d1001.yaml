@@ -1,0 +1,482 @@
+substitutions:
+  name: seed-d1001
+  friendly_name: Seeed Studio D1001
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  variant: esp32p4
+  engineering_sample: true
+  flash_size: 32MB
+  cpu_frequency: 360MHz
+  framework:
+    type: esp-idf
+    advanced:
+      enable_idf_experimental_features: true
+      execute_from_psram: false
+
+
+logger:
+  level: debug
+
+psram:
+  speed: 200MHz
+
+debug:
+
+api:
+
+external_components:
+  #- source:
+      #type: git
+      #url: "file:///Users/clyde/dev/opensourceprojects/esp/esphome"
+      #ref: lsm6ds3
+  - source: github://pr#16232
+    components: [const, lsm6ds3, motion]
+    refresh: 1h
+  - source: github://pr#16285
+    components: [gsl3670, touchscreen]
+    refresh: 1h
+  - source: github://esphome/esphome@dev
+    components: [mipi_dsi]
+    refresh: 1h
+
+esp_ldo:
+  - channel: 3
+    voltage: 2.5V
+
+esp32_hosted:
+  variant: ESP32C6
+  reset_pin: GPIO13
+  cmd_pin: GPIO6
+  clk_pin: GPIO11
+  d0_pin: GPIO7
+  d1_pin: GPIO8
+  d2_pin: GPIO9
+  d3_pin: GPIO10
+  active_high: true
+
+xl9535:
+  id: expander
+  i2c_id: misc_i2c
+
+ota:
+  - platform: esphome
+
+wifi: !include wifi.yaml
+
+display:
+  - platform: mipi_dsi
+    model: SEEED-RETERMINAL-D1001
+
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: LCD Backlight
+    id: lcd_backlight
+    restore_mode: ALWAYS_ON
+    default_transition_length: 0s
+    gamma_correct: 1.0
+
+output:
+  - platform: ledc
+    id: backlight_output
+    pin: 14
+    frequency: 1220Hz
+    inverted: false
+    min_power: 15%
+
+i2c:
+  - id: lcd_i2c
+    sda:
+      ignore_strapping_warning: true
+      number: GPIO37
+    scl:
+      ignore_strapping_warning: true
+      number: GPIO38
+    scan: true
+    frequency: 400kHz
+  - id: misc_i2c
+    sda: GPIO20
+    scl: GPIO21
+    scan: true
+    frequency: 400kHz
+    
+
+lvgl:
+  byte_order: little_endian
+  rotation: 270
+  style_definitions:
+    - id: circle
+      radius: circle
+      outline_width: 2
+      outline_color: grey
+      align: center
+    - id: dashline
+      width: 100%
+      height: 100%
+      line_dash_width: 5
+      line_dash_gap: 5
+      line_color: grey
+    - id: cardinals
+      text_font: montserrat_40
+
+  on_pressing:
+      - lvgl.widget.update:
+          id: dot
+          x: !lambda 'return point.x - 6;'
+          y: !lambda 'return point.y - 6;'
+
+  top_layer:
+    widgets:
+      - label:
+          hidden: true
+          id: power_down_label
+          text: "Powering off"
+          align: center
+          bg_color: darkgrey
+          bg_opa: cover
+          text_color: white
+          text_font: montserrat_40
+          text_align: center
+          width: 50%
+
+  widgets:
+    - container:
+        layout: vertical
+        align: left_mid
+        pad_all: 20px
+        height: 50%
+        width: 20%
+        widgets:
+          - button:
+              width: size_content
+              id: battery_charge_button
+              widgets:
+                - label:
+                    text_font: montserrat_24
+                    align: center
+                    text: Charge Enable
+              checkable: true
+              pad_all: 10px
+              text_font: montserrat_24
+              on_value:
+                - switch.control:
+                    id: battery_charge_enable
+                    state: !lambda return x;
+                - delay: 200ms
+                - component.update: vbat
+          - label:
+              id: vbat_label
+              text_align: center
+              text: "--"
+              pad_all: 10px
+              text_font: montserrat_24
+      
+    - container:
+        width: 400
+        height: 400
+        align: center
+        styles: [circle, cardinals]
+        bg_color: lightgreen
+        bg_opa: cover
+        widgets:
+        - container:
+            styles: circle
+            width: 75%
+            height: 75%
+        - container:
+            styles: circle
+            width: 50%
+            height: 50%
+        - container:
+            styles: circle
+            width: 25%
+            height: 25%
+        - line:
+            styles: dashline
+            points:
+              - 50%,0
+              - 50%,100%
+        - line:
+            styles: dashline
+            points:
+              - {x: 0, y: 50%}
+              - [100%, 50%]
+        - container:
+            styles: circle
+            width: 8%
+            height: 8%
+            bg_color: grey
+            bg_opa: 50%
+        - label:
+            text: R
+            align: bottom_mid
+        - label:
+            text: F
+            align: top_mid
+        - label:
+            text: L
+            align: left_mid
+        - label:
+            text: R
+            align: right_mid
+
+        - container:
+            id: indicator
+            styles: circle
+            width: 10%
+            height: 10%
+            bg_color: tomato
+            bg_opa: 100%
+            x: 100
+            y: 100
+    # Red dot that follows touch
+    - obj:
+        id: dot
+        event_bubble: true
+        x: 154
+        y: 114
+        width: 12
+        height: 12
+        bg_color: 0xFF0000
+        bg_opa: COVER
+        border_width: 0
+        radius: 6
+        
+script:
+  - id: power_down_script
+    mode: single
+    then:
+    - lvgl.label.update:
+        id: power_down_label
+        hidden: false
+        text: "Powering off in 3s"
+    - delay: 1s
+    - lvgl.label.update:
+        id: power_down_label
+        text: "Powering off in 2s"
+    - delay: 1s
+    - lvgl.label.update:
+        id: power_down_label
+        text: "Powering off in 1s"
+    - delay: 1s
+    - lvgl.label.update:
+        id: power_down_label
+        text: "Powering off now"
+    - delay: 500ms
+    - switch.turn_off: power_hold
+
+    
+  - id: update_id
+    then:
+    - if:
+        condition:
+          lambda: return abs(id(roll_id).state) < 1.0f && abs(id(pitch_id).state) < 1.0f;
+        then:
+          lvgl.widget.update:
+            id: indicator
+            bg_color: green
+            x: !lambda return (int)(clamp(id(roll_id).state, -20.0f, 20.0f) / 20.0f * 200);
+            y: !lambda return (int)(clamp(id(pitch_id).state, -20.0f, 20.0f) / 20.0f * 200);
+        else:
+          lvgl.widget.update:
+            id: indicator
+            bg_color: red
+            x: !lambda return (int)(clamp(id(roll_id).state, -20.0f, 20.0f) / 20.0f * 200);
+            y: !lambda return (int)(clamp(id(pitch_id).state, -20.0f, 20.0f) / 20.0f * 200);
+
+
+motion:
+  - platform: lsm6ds3
+    i2c_id: misc_i2c
+    update_interval: 50ms
+    axis_map:
+      x: -y
+      y: x
+      z: -z
+
+switch:
+  - platform: gpio
+    id: battery_charge_enable
+    name: Battery Charge Enable
+    pin:
+      xl9535:
+      number: 12
+      inverted: true
+    restore_mode: ALWAYS_ON
+    on_state:
+      lvgl.widget.update:
+        id: battery_charge_button
+        state:
+          checked: !lambda return x;
+
+  - platform: gpio
+    id: power_hold
+    name: Power Hold
+    pin:
+      xl9535:
+      number: 10
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: gpio
+    id: vbat_enable
+    pin:
+      xl9535:
+      number: 6
+    restore_mode: ALWAYS_ON
+
+binary_sensor:
+  - platform: gpio
+    pin: 3
+    id: pwr_button
+    trigger_on_initial_state: false
+    on_press:
+      if:
+        condition:
+          binary_sensor.is_off: vsys_power_good
+        then:
+          script.execute: power_down_script
+    on_release:
+      - delay: 300ms
+      - script.stop: power_down_script
+      - lvgl.widget.update:
+          id: power_down_label
+          hidden: true
+      - switch.turn_on: power_hold
+  - platform: gpio
+    pin:
+      number: 4
+      inverted: true
+      mode: INPUT_PULLUP
+    name: VSYS Power Good
+    id: vsys_power_good
+
+touchscreen:
+  - platform: gsl3670
+    i2c_id: lcd_i2c
+    model: seeed-reterminal-d1001
+
+sensor:
+  - platform: adc
+    pin: 18
+    id: vbat
+    name: Battery Voltage
+    update_interval: 10s
+    attenuation: auto
+    filters:
+      - multiply: 2.0
+    on_value:
+      lvgl.label.update:
+        id: vbat_label
+        text:
+          format: "Bat %.2fV"
+          args: [x]
+
+
+
+  - platform: motion
+    type: acceleration_x
+    name: "Accel X"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+  - platform: motion
+    type: acceleration_y
+    name: "Accel Y"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+  - platform: motion
+    type: acceleration_z
+    name: "Accel Z"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+
+    # Gyroscope axes (unit: °/s)
+  - platform: motion
+    type: gyroscope_x
+    name: "Gyro X"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+    accuracy_decimals: 2
+  - platform: motion
+    type: gyroscope_y
+    name: "Gyro Y"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+  - platform: motion
+    type: gyroscope_z
+    name: "Gyro Z"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+
+  - platform: motion
+    type: angular_rate_x
+    name: "Angular Rate X"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+    accuracy_decimals: 2
+  - platform: motion
+    type: angular_rate_y
+    name: "Angular Rate Y"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+  - platform: motion
+    type: angular_rate_z
+    name: "Angular Rate Z"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 4
+  - platform: motion
+    type: pitch
+    id: pitch_id
+    name: "Pitch"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 1
+    
+  - platform: motion
+    type: roll
+    id: roll_id
+    name: "Roll"
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 1
+    accuracy_decimals: 2
+    on_value:
+      script.execute: update_id
+
+    # On-chip temperature sensor (unit: °C)
+  - platform: lsm6ds3
+    type: temperature
+    name: "IMU Temperature"
+    accuracy_decimals: 1
+

@@ -20,9 +20,8 @@ touchscreen:
 display:
   - platform: sdl
     dimensions:
-      width: 450
-      height: 600
-    show_test_card: true
+      width: 800
+      height: 800
 
 lvgl:
 

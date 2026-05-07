@@ -30,6 +30,6 @@ display:
     reset_pin:
       number: GPIO9
       ignore_strapping_warning: true
-    rotation: 90
 
 lvgl:
+    rotation: 90
