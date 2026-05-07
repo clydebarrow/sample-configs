@@ -126,7 +126,7 @@ lvgl:
   on_pressing:
       - lvgl.widget.update:
           id: dot
-          x: !lambda 'return point.x - 6;'
+          x: !lambda 'return point.x - 18;'
           y: !lambda 'return point.y - 6;'
 
   top_layer:
@@ -142,6 +142,11 @@ lvgl:
           text_font: montserrat_40
           text_align: center
           width: 50%
+      - label:
+          align: top_right
+          x: -60
+          text_font: montserrat_16
+          text: "Press and hold green button to power off"
 
   widgets:
     - container:
@@ -174,6 +179,13 @@ lvgl:
               text: "--"
               pad_all: 10px
               text_font: montserrat_24
+          - label:
+              id: temp_label
+              text_align: center
+              text: "--"
+              pad_all: 10px
+              text_font: montserrat_24
+      
       
     - container:
         width: 400
@@ -237,14 +249,15 @@ lvgl:
     - obj:
         id: dot
         event_bubble: true
+        scrollable: false
         x: 154
         y: 114
-        width: 12
-        height: 12
-        bg_color: 0xFF0000
+        width: 36
+        height: 36
+        bg_color: blue
         bg_opa: COVER
         border_width: 0
-        radius: 6
+        radius: circle
         
 script:
   - id: power_down_script
@@ -479,4 +492,14 @@ sensor:
     type: temperature
     name: "IMU Temperature"
     accuracy_decimals: 1
+    filters:
+      - sliding_window_moving_average:
+          window_size: 32
+          send_every: 32
+    on_value:
+      lvgl.label.update:
+        id: temp_label
+        text:
+          format: "%.1f °C"
+          args: [x]
 
