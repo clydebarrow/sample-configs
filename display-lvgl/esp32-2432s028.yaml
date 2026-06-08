@@ -38,7 +38,7 @@ touchscreen:
   spi_id: touch_spi
   id: my_touchscreen
   cs_pin: 33
-  #interrupt_pin: 36
+  interrupt_pin: 36
   update_interval: 50ms
   threshold: 400
   transform:

@@ -1,6 +1,6 @@
 substitutions:
-  name: waveshare-p4-10-1
-  friendly_name: Waveshare P4 10.1
+  name: seed-d1001
+  friendly_name: Seeed Studio D1001
 
 esphome:
   name: ${name}
@@ -17,15 +17,8 @@ esp32:
       execute_from_psram: true
 
 
-external_components:
-# For the backlight
-  - source: github://pr#9879
-    components: [mipi_dsi]
-    refresh: 1h
-
 logger:
   level: debug
-  hardware_uart: UART0
 
 psram:
   speed: 200MHz
@@ -57,30 +50,19 @@ wifi: !include wifi.yaml
 display:
   - platform: mipi_dsi
     model: WAVESHARE-P4-NANO-10.1
+    rotation: 90
 
 i2c:
   sda: GPIO7
   scl: GPIO8
   frequency: 400kHz
+    
 
 touchscreen:
   - platform: gt911
     id: touchscreen_
+    transform:
+      swap_xy: true
+      mirror_y: true
+      mirror_x: false
 
-light:
-  - platform: mipi_dsi
-    id: backlight_id
-    pwm_register: 0x86
-
-lvgl:
-  byte_order: little_endian
-  rotation: 90
-  widgets:
-  - slider:
-      id: lv_slider_t_id
-      align: center
-      value: 50
-      on_value:
-      - light.turn_on:
-          id: backlight_id
-          brightness: !lambda return x / 100.0;
