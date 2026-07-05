@@ -31,6 +31,7 @@ touchscreen:
       mirror_x: false
 
 psram:
+  mode: quad
   speed: 80MHz
 
 spi:

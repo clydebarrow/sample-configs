@@ -59,3 +59,4 @@ display:
     model: t-display-s3-pro
 
 lvgl:
+  rotation: 90

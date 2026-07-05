@@ -61,8 +61,15 @@ touchscreen:
 display:
   - platform: mipi_spi
     spi_id: disp_spi
-    model: esp32-2432S028
+    model: esp32-2432S028-7789
     show_test_card: true
     color_depth: 8bit
-    pixel_mode: 18bit
+    rotation: 90
+    #pixel_mode: 18bit
+    dimensions:
+      height: 128
+      width: 128
+      offset_width: 10     
+      offset_height: 20
+
 

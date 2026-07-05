@@ -2,9 +2,7 @@ esphome:
   name: t-display-s3
 
 esp32:
-  board: esp32-s3-devkitc-1
-  framework:
-    type: esp-idf
+  variant: esp32s3
 
 logger:
 
@@ -41,6 +39,10 @@ psram:
   speed: 80MHz
   mode: octal
 
+external_components:
+  - source: github://pr#17247
+    components: [mipi_spi]
+    refresh: 1h
 display:
   - platform: mipi_spi
     model: t-display-s3
