@@ -29,13 +29,6 @@ debug:
 api:
 
 external_components:
-  #- source:
-      #type: git
-      #url: "file:///Users/clyde/dev/opensourceprojects/esp/esphome"
-      #ref: lsm6ds3
-  - source: github://pr#16232
-    components: [const, lsm6ds3, motion]
-    refresh: 1h
   - source: github://pr#16285
     components: [gsl3670, touchscreen]
     refresh: 1h
@@ -303,7 +296,7 @@ script:
 
 
 motion:
-  - platform: lsm6ds3
+  - platform: lsm6ds
     i2c_id: misc_i2c
     update_interval: 50ms
     axis_map:
@@ -488,7 +481,7 @@ sensor:
       script.execute: update_id
 
     # On-chip temperature sensor (unit: °C)
-  - platform: lsm6ds3
+  - platform: lsm6ds
     type: temperature
     name: "IMU Temperature"
     accuracy_decimals: 1
