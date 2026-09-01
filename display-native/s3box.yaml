@@ -48,4 +48,9 @@ touchscreen:
     interrupt_pin:
       number: GPIO3
       ignore_strapping_warning: true
+    on_touch:
+      - lambda: |-
+          auto rotation = (id(lcd_display).get_rotation() + 90) % 360;
+          id(lcd_display).set_rotation((display::DisplayRotation)rotation);
+          id(lcd_display).update();
 

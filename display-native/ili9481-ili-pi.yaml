@@ -41,6 +41,10 @@ touchscreen:
               touch.x_raw,
               touch.y_raw
               );
+    - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();
 
 output:
   - platform: ledc
@@ -58,6 +62,7 @@ light:
 
 display:
   - platform: mipi_spi
+    id: disp_id
     data_rate: 80MHz
     model: ili9481
     init_sequence:

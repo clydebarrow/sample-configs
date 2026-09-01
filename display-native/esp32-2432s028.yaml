@@ -57,9 +57,14 @@ touchscreen:
               touch.x_raw,
               touch.y_raw
               );
+    - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();
 
 display:
   - platform: mipi_spi
+    id: disp_id
     spi_id: disp_spi
     model: esp32-2432S028-7789
     show_test_card: true

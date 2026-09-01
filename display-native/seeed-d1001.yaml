@@ -49,6 +49,7 @@ wifi: !include wifi.yaml
 
 display:
   - platform: mipi_dsi
+    id: disp_id
     model: WAVESHARE-P4-NANO-10.1
     rotation: 90
 
@@ -65,4 +66,9 @@ touchscreen:
       swap_xy: true
       mirror_y: true
       mirror_x: false
+    on_touch:
+      - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();
 

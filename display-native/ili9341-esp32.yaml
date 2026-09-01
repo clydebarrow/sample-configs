@@ -46,6 +46,11 @@ touchscreen:
     x_max: 3860
     y_min: 340
     y_max: 3860
+  on_touch:
+    - lambda: |-
+          auto rotation = (id(main_lcd).get_rotation() + 90) % 360;
+          id(main_lcd).set_rotation((display::DisplayRotation)rotation);
+          id(main_lcd).update();
 
 display:
   - platform: mipi_spi
