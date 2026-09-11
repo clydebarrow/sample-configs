@@ -109,7 +109,6 @@ font:
 time:
   - platform: sntp
     id: sntp_time
-    timezone: Australia/Sydney
 
 script:
   - id: run_once_awake
