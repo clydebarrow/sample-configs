@@ -1,6 +1,6 @@
 # e1004 Picture Frame
 
-An ESPHome config for the [Seeed reTerminal E1004](https://www.seeedstudio.com/reTerminal-E1004-p-6534.html), a battery-powered e-paper display. It wakes up once a day, downloads a fresh dithered photo, shows it with the date and battery level overlaid, then goes back to deep sleep until the next day.
+An ESPHome config for the [Seeed reTerminal E1004](https://www.seeedstudio.com/reTerminal-E1004-p-6692.html), a battery-powered e-paper display. It wakes up once a day, downloads a fresh dithered photo, shows it with the date and battery level overlaid, then goes back to deep sleep until the next day.
 
 |                                          |                                                |
 |------------------------------------------|------------------------------------------------|
@@ -13,7 +13,7 @@ The source image is a 1200x1600 PNG that is re-generated and re-uploaded once a 
 - `picture.yaml` — the main config: display, image download, LVGL UI, battery sensing, sleep scheduling, buttons, buzzer.
 - `standard.yaml` — shared boilerplate (`!include`d from `picture.yaml`): device name, logger, API, OTA, restart button, uptime/WiFi diagnostics.
 - `wifi.yaml` — WiFi credentials and connection tuning (`!include`d by `standard.yaml`).
-- `secrets.yaml` — symlinked to `../secrets.yaml`, holds the actual WiFi/API secrets (not committed).
+- `secrets.yaml` — holds the actual WiFi/API secrets (not committed).
 
 ## How `picture.yaml` works
 
