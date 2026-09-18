@@ -1,0 +1,95 @@
+# Sunton ESP32 2.8" 240x320 with touch
+# Flip clock 
+
+substitutions:
+  name: flip-clock
+  friendly_name: Flip Clock
+
+esp32:
+  variant: esp32
+  framework:
+    type: esp-idf
+    advanced:
+      minimum_chip_revision: "3.0"
+      sram1_as_iram: true
+
+packages:
+  standard: !include standard.yaml
+  clock: !include
+    file: flip-clock.yaml
+    vars:
+      font: digit_font
+      align: top_mid
+      gap: 4px
+      card_pad: 10px
+
+font:
+  - file: "gfonts://Roboto@bold"
+    id: digit_font
+    bpp: 4
+    size: 80
+
+
+time:
+  - platform: sntp
+    id: sntp_time
+    on_time_sync:
+      then:
+        - script.execute: clock_tick
+
+logger:
+
+output:
+  - platform: ledc
+    id: gpio_5_backlight_pwm
+    pin: 21
+    frequency: 44100
+    inverted: false
+
+light:
+  - platform: monochromatic
+    output: gpio_5_backlight_pwm
+    id: back_light
+    restore_mode: ALWAYS_ON
+
+spi:
+  - id: disp_spi
+    clk_pin: 14
+    mosi_pin: 13
+  - id: touch_spi
+    clk_pin: 25
+    mosi_pin: 32
+    miso_pin: 39
+
+touchscreen:
+  platform: xpt2046
+  spi_id: touch_spi
+  id: my_touchscreen
+  cs_pin: 33
+  interrupt_pin: 36
+  update_interval: 50ms
+  threshold: 400
+  transform:
+    swap_xy: false
+    mirror_y: false
+    mirror_x: true
+  calibration:
+    x_min: 367
+    x_max: 3355
+    y_min: 296
+    y_max: 3642
+
+display:
+  - platform: mipi_spi
+    spi_id: disp_spi
+    model: esp32-2432S028 # uses ili9341
+    buffer_size: 12%
+    #model: esp32-2432S028-9342 # Uses ILI9342
+    #model: esp32-2432S028-7789 # Uses ST7789V controller
+
+
+lvgl:
+  rotation: 90
+  theme:
+    dark_mode: true
+  bg_color: black

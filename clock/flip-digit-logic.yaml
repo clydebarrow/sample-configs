@@ -1,0 +1,106 @@
+# Per-digit state, flip script and flap animations for one split-flap
+# digit cell. Pairs with the widget fragment in flip-digit-widget.yaml
+# (included separately, inline, so it can nest inside the clock's flex
+# row) - this part has no nesting requirement so it's included the normal
+# way, via `packages:`. `slot` prefixes every id so instances don't
+# collide.
+
+globals:
+  - id: ${slot}_digit_value
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+script:
+  # flips this digit to an explicit new value (0-9), rather than just
+  # incrementing, so a clock driver can set several digits at once and
+  # keep them in sync on rollover
+  - id: ${slot}_flip_script
+    parameters:
+      new_value: int
+    then:
+      - lambda: id(${slot}_digit_value) = new_value;
+      # back_top already shows the new digit before the top flap folds
+      # away, so it's revealed the instant the flap disappears - the
+      # visible motion (250ms) is the *disappearing* top flap
+      - lvgl.label.update:
+          id: ${slot}_back_top_label
+          text: !lambda return std::to_string(id(${slot}_digit_value));
+      - lvgl.animation.start: ${slot}_fold_top_anim
+
+lvgl:
+  # The fold is done by shrinking each front flap to nothing (or growing it
+  # back) rather than via `transform_scale_y`: a scale transform forces LVGL
+  # to render the widget into an offscreen ARGB layer buffer sized to its
+  # full area before it can composite the scaled result, and that one-shot
+  # allocation (tens of KB per flap) reliably fails on PSRAM-less boards
+  # (e.g. cyd.yaml) once the heap has any fragmentation. `transform_height`
+  # + `translate_y` are plain style properties LVGL draws directly with no
+  # extra buffer, and combined they give the same hinge-anchored shrink:
+  # transform_height alone shrinks a widget symmetrically about its own
+  # center (LVGL's lv_area_increase moves both edges equally), so
+  # translate_y shifts it back by the same amount to pin the hinge edge
+  # (bottom for the top flap, top for the bottom flap) instead of the
+  # center. Full flap height isn't known until the font-derived layout
+  # resolves, so it's read at animation-start from the same-row `_back_*`
+  # sibling (always at the un-transformed cell size) rather than hardcoded.
+  animations:
+    - id: ${slot}_fold_top_anim
+      duration: 250ms
+      timing: ease_in
+      # Collapsing via transform_height/translate_y alone isn't quite
+      # pixel-exact at the end of the shrink (LVGL doesn't always resolve a
+      # zero/negative transformed area to "draw nothing" cleanly - it can
+      # leave a 1px sliver of the flap's own background rendered right at
+      # the hinge, which is *very* visible cutting through digits like "9"
+      # whose glyph has a stroke crossing that exact row). Explicitly
+      # hiding the flap once it's supposed to be invisible (on_stop, below)
+      # and showing it again right as the next fold starts (on_start) sidesteps
+      # that rounding edge case entirely, rather than chasing exact transform math.
+      on_start:
+        - lvgl.widget.show: ${slot}_front_top
+      widgets:
+        - id: ${slot}_front_top
+          # Use ceiling division (`(H + 1) / 2`), not `H / 2`: for odd H,
+          # truncating division makes transform_height and translate_y
+          # cancel 1px short of fully closed, leaving a 1px sliver of the
+          # old digit visibly stuck at the hinge after every flip. Ceiling
+          # division either closes exactly (even H) or overshoots by 1px
+          # (odd H, giving a harmless zero/negative-height, i.e. invisible,
+          # area) - either way, never leaves a visible remnant. The hinge
+          # edge itself stays exactly pinned regardless, since the same
+          # value is added and subtracted there.
+          transform_height:
+            from: 0
+            to: !lambda return -(lv_obj_get_height(id(${slot}_back_top)) + 1) / 2;
+          translate_y:
+            from: 0
+            to: !lambda return (lv_obj_get_height(id(${slot}_back_top)) + 1) / 2;
+      # top flap is now zero-height (fully folded into its bottom hinge) -
+      # swap its text then pop it straight back to full size, ready for the
+      # *next* flip
+      on_stop:
+        - lvgl.widget.hide: ${slot}_front_top
+        - lvgl.label.update:
+            id: ${slot}_front_top_label
+            text: !lambda return std::to_string(id(${slot}_digit_value));
+        - lvgl.label.update:
+            id: ${slot}_front_bottom_label
+            text: !lambda return std::to_string(id(${slot}_digit_value));
+        - lvgl.animation.start: ${slot}_unfold_bottom_anim
+    - id: ${slot}_unfold_bottom_anim
+      duration: 250ms
+      timing: ease_in
+      widgets:
+        - id: ${slot}_front_bottom
+          # See fold_top_anim above for why `(H + 1) / 2`, not `H / 2`.
+          transform_height:
+            from: !lambda return -(lv_obj_get_height(id(${slot}_back_bottom)) + 1) / 2;
+            to: 0
+          translate_y:
+            from: !lambda return -(lv_obj_get_height(id(${slot}_back_bottom)) + 1) / 2;
+            to: 0
+      on_stop:
+        - lvgl.label.update:
+            id: ${slot}_back_bottom_label
+            text: !lambda return std::to_string(id(${slot}_digit_value));

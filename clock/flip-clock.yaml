@@ -1,0 +1,198 @@
+# Parameterized split-flap HH:MM clock. Pass `font` (the id of an
+# already-declared font) via `packages: {clock: !include {file:
+# flip-clock.yaml, vars: {font: your_font_id}}}` - every digit cell, the
+# colon, and their arrangement are all sized/positioned from that font via
+# LVGL layout (flex row + SIZE_CONTENT), not hardcoded pixel coordinates.
+substitutions:
+  gap: 16px
+  align: center
+  # horizontal breathing room inside each flap, beyond the digit glyph
+  # itself - a bare glyph-width card reads as too narrow/cramped
+  card_pad: 0px
+
+packages:
+  h0_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: h0
+  h1_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: h1
+  m0_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: m0
+  m1_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: m1
+
+lvgl:
+  # Shared LVGL styles, so the "bare, non-scrolling container" and "dark
+  # flap face with white digit" property sets are each declared once instead
+  # of being repeated on every obj/label that needs them (clock_root, the
+  # colon container, each digit cell's root and its four flap faces, all
+  # defined across this file and flip-digit-widget.yaml).
+  style_definitions:
+    - id: bare_container_style
+      pad_all: 0
+      border_width: 0
+      bg_opa: transp
+      scrollbar_mode: "OFF"
+    - id: flap_style
+      pad_all: 0
+      border_width: 0
+      radius: 0
+      bg_color: 0x222222
+      bg_opa: cover
+      clip_corner: true
+      scrollbar_mode: "OFF"
+      # text properties inherit down to the flap's label child, so no
+      # separate label style is needed
+      text_font: ${font}
+      text_color: 0xFFFFFF
+  widgets:
+    - obj:
+        id: clock_root
+        align: ${align}
+        styles: bare_container_style
+        scrollable: false
+        width: SIZE_CONTENT
+        height: SIZE_CONTENT
+        layout:
+          type: flex
+          flex_flow: row
+          flex_align_main: center
+          flex_align_cross: center
+          pad_column: ${gap}
+        widgets:
+          - !include
+            file: flip-digit-widget.yaml
+            vars:
+              slot: h0
+              font: ${font}
+              pad: ${card_pad}
+          - !include
+            file: flip-digit-widget.yaml
+            vars:
+              slot: h1
+              font: ${font}
+              pad: ${card_pad}
+          - container:
+              id: colon
+              width: size_content
+              text_align: center
+              height: SIZE_CONTENT
+              styles: bare_container_style
+              scrollable: false
+              widgets:
+                label:
+                  text: ":"
+                  text_font: ${font}
+                  align: center
+          - !include
+            file: flip-digit-widget.yaml
+            vars:
+              slot: m0
+              font: ${font}
+              pad: ${card_pad}
+          - !include
+            file: flip-digit-widget.yaml
+            vars:
+              slot: m1
+              font: ${font}
+              pad: ${card_pad}
+
+time:
+  - platform: host
+    id: clock_time
+    on_time_sync:
+      then:
+        - script.execute: clock_tick
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: clock_tick
+
+script:
+  # four driver scripts, one per possible rollover width: a clock tick
+  # only ever changes a contiguous run of digits counting from m1
+  # leftward (just m1; m1+m0; m1+m0+h1; or all four), so clock_tick
+  # below picks whichever of these matches and every digit it touches
+  # starts flipping in the same instant, keeping them in sync
+  - id: flip_1_digit
+    parameters:
+      m1: int
+    then:
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+  - id: flip_2_digits
+    parameters:
+      m0: int
+      m1: int
+    then:
+      - script.execute:
+          id: m0_flip_script
+          new_value: !lambda return m0;
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+  - id: flip_3_digits
+    parameters:
+      h1: int
+      m0: int
+      m1: int
+    then:
+      - script.execute:
+          id: h1_flip_script
+          new_value: !lambda return h1;
+      - script.execute:
+          id: m0_flip_script
+          new_value: !lambda return m0;
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+  - id: flip_4_digits
+    parameters:
+      h0: int
+      h1: int
+      m0: int
+      m1: int
+    then:
+      - script.execute:
+          id: h0_flip_script
+          new_value: !lambda return h0;
+      - script.execute:
+          id: h1_flip_script
+          new_value: !lambda return h1;
+      - script.execute:
+          id: m0_flip_script
+          new_value: !lambda return m0;
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+
+  # compares the current time against what's on screen (the four
+  # ${slot}_digit_value globals) and flips only the digits that differ,
+  # starting from the highest-order one that changed
+  - id: clock_tick
+    then:
+      - lambda: |-
+          auto now = id(clock_time).now();
+          if (!now.is_valid())
+            return;
+          int nh0 = now.hour / 10;
+          int nh1 = now.hour % 10;
+          int nm0 = now.minute / 10;
+          int nm1 = now.minute % 10;
+          if (nh0 != id(h0_digit_value)) {
+            id(flip_4_digits)->execute(nh0, nh1, nm0, nm1);
+          } else if (nh1 != id(h1_digit_value)) {
+            id(flip_3_digits)->execute(nh1, nm0, nm1);
+          } else if (nm0 != id(m0_digit_value)) {
+            id(flip_2_digits)->execute(nm0, nm1);
+          } else if (nm1 != id(m1_digit_value)) {
+            id(flip_1_digit)->execute(nm1);
+          }

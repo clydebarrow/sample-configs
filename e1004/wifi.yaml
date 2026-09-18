@@ -1,8 +1,1 @@
-ssid: !secret wifi_ssid
-output_power: 16db
-password: !secret wifi_password
-domain: !secret domain
-fast_connect: true
-#use_psram: true
-#power_save_mode: none
-
+../wifi.yaml

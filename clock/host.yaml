@@ -1,0 +1,47 @@
+
+substitutions:
+  name: host-lvgl
+  friendly_name: Host lvgl test
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  platformio_options:
+    #lib_deps:
+    #  - symlink:///Users/clyde/dev/opensourceprojects/piolibs/lvgl
+    build_flags:
+    - -g3
+  on_boot:
+    script.execute: clock_tick
+
+host:
+  mac_address: "62:23:45:AF:B3:DD"
+
+network:
+
+logger:
+
+touchscreen:
+  - platform: sdl
+    id: sdl_touchscreen
+
+display:
+  - platform: sdl
+    id: display_id
+    dimensions:
+      width: 320
+      height: 240
+
+font:
+  - file: "gfonts://Roboto"
+    id: digit_font
+    bpp: 4
+    size: 64
+
+packages:
+  clock: !include
+    file: flip-clock.yaml
+    vars:
+      font: digit_font
+      gap: 4px
+      card_pad: 10px
