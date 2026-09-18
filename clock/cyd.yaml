@@ -22,13 +22,40 @@ packages:
       align: top_mid
       gap: 4px
       card_pad: 10px
+  weather_logic: !include
+    file: weather-logic.yaml
+    vars:
+      time_id: sntp_time
+  weather_widget: !include
+    file: weather-widget.yaml
+    vars:
+      font: font_medium
+      # cyd.yaml sets lvgl.bg_color: black below - light text/icon reads
+      # clearly on it
+      text_color: 0xFFFFFF
+      icon_recolor: 0xFFFFFF
 
 font:
   - file: "gfonts://Roboto@bold"
     id: digit_font
     bpp: 4
     size: 80
+    glyphs: "0123456789: "
+  - file: "gfonts://Roboto"
+    id: font_medium
+    bpp: 4
+    size: 18
+    # Covers weekday/month abbreviations, the date, and a signed
+    # temperature reading
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
 
+api:
+  encryption:
+    key: !secret encryption_key
+
+ota:
+  platform: esphome
+  encryption:
 
 time:
   - platform: sntp
@@ -38,6 +65,33 @@ time:
         - script.execute: clock_tick
 
 logger:
+
+sensor:
+  - platform: adc
+    pin: GPIO34
+    id: ldr_voltage
+    name: LDR voltage
+    attenuation: auto
+    update_interval: 2s
+    accuracy_decimals: 2
+
+  - platform: copy
+    source_id: ldr_voltage
+    id: ambient_light
+    name: Ambient Light
+    unit_of_measurement: "%"
+    filters:
+      - multiply: -0.3
+      - offset: 1.0
+      - clamp:
+          max_value: 1.0
+          min_value: 0.1
+    on_value:
+      then:
+        - light.turn_on:
+            id: backlight_id
+            brightness: !lambda return x;
+  # outside_temp is declared in weather-logic.yaml (shared with host.yaml)
 
 output:
   - platform: ledc
@@ -49,8 +103,9 @@ output:
 light:
   - platform: monochromatic
     output: gpio_5_backlight_pwm
-    id: back_light
+    id: backlight_id
     restore_mode: ALWAYS_ON
+    gamma_correct: 1.8
 
 spi:
   - id: disp_spi
@@ -93,3 +148,4 @@ lvgl:
   theme:
     dark_mode: true
   bg_color: black
+  pad_top: 8px

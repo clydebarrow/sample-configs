@@ -1,0 +1,74 @@
+# Compact status bar showing today's date, a weather condition icon, and
+# the current outdoor temperature - sourced the same way as
+# ../dexfield/smalltv-package.yaml (Home Assistant weather/temperature
+# sensors, an MDI-icon `mapping:`; see weather-logic.yaml), but built as
+# LVGL widgets rather than drawn with raw display calls, so it can sit
+# alongside the flip clock.
+#
+# Declared as its own top-level `lvgl: widgets:` entry - a sibling of
+# clock_root (from flip-clock.yaml), not nested inside it - so its `align`
+# positions it on the screen independently of wherever the clock itself is
+# anchored. Both this file and flip-clock.yaml are included via `packages:`
+# from host.yaml/cyd.yaml, which is what lets their `widgets:` lists merge
+# into one screen.
+#
+# Parameterized by `font` (an already-declared font id, sized for this
+# status row - the clock's own digit font is far too large), `text_color`
+# and `icon_recolor` (colors to tint the text/icon so they read clearly
+# against whichever background the target screen uses - light on
+# host.yaml, dark on cyd.yaml - rather than relying on an inherited theme
+# color).
+substitutions:
+  icon_recolor: white
+  text_color: white
+  temperature_color: 0xFFBF00
+lvgl:
+  style_definitions:
+    - id: info_text_style
+      text_font: ${font}
+      text_color: ${text_color}
+      text_align: center
+    - id: debug
+      border_color: red
+      border_opa: cover
+      border_width: 1
+  widgets:
+    - obj:
+        id: weather_panel
+        align: bottom_mid
+        styles: bare_container_style
+        scrollable: false
+        width: 100%
+        height: 50%
+        pad_bottom: 12px
+        layout: vertical
+        widgets:
+          - label:
+              align: center
+              text_align: center
+              id: date_label
+              styles: info_text_style
+              text: "---"
+          - obj:
+              styles: bare_container_style
+              scrollable: false
+              layout: horizontal
+              widgets:
+                - image:
+                    id: weather_icon
+                    src: icon_unknown
+                    image_recolor: ${icon_recolor}
+                    image_recolor_opa: cover
+                - container:
+                    layout: vertical
+                    widgets:
+                      - label:
+                          id: weather_condition_label
+                          styles: info_text_style
+                          text_font: montserrat_16
+                          text: "---"
+                      - label:
+                          id: temperature_label
+                          text_color: ${temperature_color}
+                          styles: info_text_style
+                          text: "---°C"

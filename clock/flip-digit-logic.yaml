@@ -47,7 +47,7 @@ lvgl:
   animations:
     - id: ${slot}_fold_top_anim
       duration: 250ms
-      timing: ease_in
+      timing: ease_in_out
       # Collapsing via transform_height/translate_y alone isn't quite
       # pixel-exact at the end of the shrink (LVGL doesn't always resolve a
       # zero/negative transformed area to "draw nothing" cleanly - it can
@@ -90,7 +90,7 @@ lvgl:
         - lvgl.animation.start: ${slot}_unfold_bottom_anim
     - id: ${slot}_unfold_bottom_anim
       duration: 250ms
-      timing: ease_in
+      timing: ease_in_out
       widgets:
         - id: ${slot}_front_bottom
           # See fold_top_anim above for why `(H + 1) / 2`, not `H / 2`.
