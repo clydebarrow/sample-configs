@@ -83,19 +83,19 @@ image:
         id: icon_unknown
 
 mapping:
-  id: weather_icons
-  from: string
-  to: image
-  default_value: icon_unknown
-  entries:
-    sunny: icon_sunny
-    clear-night: icon_weather_night
-    cloudy: icon_cloudy
-    fog: icon_cloudy
-    partly_cloudy: icon_partly_cloudy
-    partlycloudy: icon_partly_cloudy
-    rainy: icon_rainy
-    pouring: icon_pouring
-    snowy: icon_snowy
-    lightning: icon_thunder
-    lightning-rainy: icon_thunder
+  - id: weather_icons
+    from: string
+    to: image
+    default_value: icon_unknown
+    entries:
+      sunny: icon_sunny
+      clear-night: icon_weather_night
+      cloudy: icon_cloudy
+      fog: icon_cloudy
+      partly_cloudy: icon_partly_cloudy
+      partlycloudy: icon_partly_cloudy
+      rainy: icon_rainy
+      pouring: icon_pouring
+      snowy: icon_snowy
+      lightning: icon_thunder
+      lightning-rainy: icon_thunder

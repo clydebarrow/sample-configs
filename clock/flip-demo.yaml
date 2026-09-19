@@ -1,0 +1,129 @@
+# Host-only config that records demo.gif: the clock (with the weather bar)
+# flipping over from 23:59 to 00:00. Same layout as host.yaml, but with the
+# in-memory snapshot display instead of an SDL window. Build, then run the
+# binary for ~10s; the GIF lands in .esphome/snapshots/flip-demo/.
+#
+# The clock also has its own real-time `clock_tick` (see flip-clock.yaml),
+# which would flip the digits back to the actual time on the next minute
+# rollover - so don't start a run in the last few seconds of a minute.
+
+external_components:
+  - source:
+      type: git
+      url: file:///Users/clyde/dev/opensourceprojects/esp/esphome
+      ref: snapshot
+    components: [snapshot]
+    refresh: 30s
+
+substitutions:
+  name: flip-demo
+  friendly_name: Flip clock demo
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: -100
+    then:
+      # weather-logic.yaml's date interval doesn't first fire until a few
+      # seconds in, which would make the date pop in mid-recording
+      - lvgl.label.update:
+          id: date_label
+          text:
+            time_format: "%a, %b %d"
+      # no Home Assistant here, so put representative weather on screen
+      - lvgl.label.update:
+          id: weather_condition_label
+          text: "Partly cloudy"
+      - lvgl.image.update:
+          id: weather_icon
+          src: icon_partly_cloudy
+      - lvgl.label.update:
+          id: temperature_label
+          text: "21.5°C"
+      # let the boot-time sync to the real time finish, then set up 23:59
+      - delay: 1500ms
+      - script.execute:
+          id: flip_4_digits
+          h0: 2
+          h1: 3
+          m0: 5
+          m1: 9
+      - delay: 1500ms
+      - snapshot.take:
+          id: snap_display
+          filename: demo
+          frames: 100
+          frame_rate: 50fps
+      # half a second of the still 23:59, then the rollover
+      - delay: 500ms
+      - script.execute:
+          id: flip_4_digits
+          h0: 0
+          h1: 0
+          m0: 0
+          m1: 0
+
+host:
+  mac_address: "62:23:45:AF:B3:DF"
+
+network:
+
+logger:
+
+display:
+  - platform: snapshot
+    id: snap_display
+    dimensions:
+      width: 320
+      height: 240
+
+font:
+  - file: "gfonts://Roboto"
+    id: digit_font
+    bpp: 4
+    size: 64
+  - file: "gfonts://Roboto"
+    id: font_small
+    bpp: 4
+    size: 16
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_medium
+    bpp: 4
+    size: 28
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_temperature
+    bpp: 4
+    size: 40
+    glyphs: "C -0123456789°."
+
+# weather-logic.yaml's homeassistant sensors depend on the API component
+api:
+  encryption:
+    key: !secret encryption_key
+
+packages:
+  clock: !include
+    file: flip-clock.yaml
+    vars:
+      font: digit_font
+      gap: 4px
+      card_pad: 10px
+      align: top_mid
+  weather_logic: !include
+    file: weather-logic.yaml
+    vars:
+      time_id: clock_time
+  weather_widget: !include
+    file: weather-widget.yaml
+    vars:
+      font: font_medium
+      font_temperature: font_temperature
+      font_small: font_small
+
+lvgl:
+  theme:
+    dark_mode: true
+  pad_top: 8px

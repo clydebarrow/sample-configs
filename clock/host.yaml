@@ -88,6 +88,3 @@ lvgl:
   theme:
     dark_mode: true
   pad_top: 8px
-  debug_borders: true
-  on_click:
-    - logger.log: "LVGL root clicked"

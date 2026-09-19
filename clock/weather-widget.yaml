@@ -54,20 +54,16 @@ lvgl:
                     align: left_mid
                     height: 100%
                     width: 50%
-                    layout:
-                      type: flex
-                      flex_flow: column
-                      flex_align_track: center
-                      flex_align_main: space_between
-                      flex_align_cross: stretch
                     widgets:
                       - label:
                           pad_all: 0
+                          align: top_mid
                           id: weather_condition_label
                           styles: info_text_style
                           text_font: ${font_small}
                           text: "---"
                       - image:
+                          align: bottom_mid
                           id: weather_icon
                           src: icon_unknown
                           image_recolor: ${icon_recolor}

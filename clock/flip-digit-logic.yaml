@@ -19,13 +19,17 @@ script:
     parameters:
       new_value: int
     then:
-      - lambda: id(${slot}_digit_value) = new_value;
+      - globals.set:
+          id: ${slot}_digit_value
+          value: !lambda return new_value;
       # back_top already shows the new digit before the top flap folds
       # away, so it's revealed the instant the flap disappears - the
       # visible motion (250ms) is the *disappearing* top flap
       - lvgl.label.update:
           id: ${slot}_back_top_label
-          text: !lambda return std::to_string(id(${slot}_digit_value));
+          text:
+            mapping: digit_map
+            value: !lambda return id(${slot}_digit_value);
       - lvgl.animation.start: ${slot}_fold_top_anim
 
 lvgl:
@@ -34,14 +38,9 @@ lvgl:
   # flip-digit-widget.yaml. The fold scales that card vertically about the
   # seam (`transform_scale_y`, pivot at 50% of the card) so the flap
   # background and the digit squash together; only the window-clipped half
-  # of the card is ever visible. (Animating `transform_height` +
-  # `translate_y` on the flap instead avoids LVGL's offscreen layer buffer,
-  # but only the background box shrinks - a child label just gets
-  # translated - so the digit slides away rather than folding.)
-  #
+  # of the card is ever visible.
   # Animating `transform_scale_y` (and the `ease_in`/`ease_out` timings)
-  # needs the `lvgl-animation` branch of the lvgl component, pulled in via
-  # `external_components` in flip-clock.yaml. The fold eases in (the flap
+  # makes the fold ease in (the flap
   # accelerates as it falls toward the seam) and the unfold eases out (the
   # bottom flap decelerates as it settles flat).
   #
@@ -75,10 +74,14 @@ lvgl:
             transform_scale_y: 0.0
         - lvgl.label.update:
             id: ${slot}_front_top_label
-            text: !lambda return std::to_string(id(${slot}_digit_value));
+            text:
+              mapping: digit_map
+              value: !lambda return id(${slot}_digit_value);
         - lvgl.label.update:
             id: ${slot}_front_bottom_label
-            text: !lambda return std::to_string(id(${slot}_digit_value));
+            text:
+              mapping: digit_map
+              value: !lambda return id(${slot}_digit_value);
         - lvgl.animation.start: ${slot}_unfold_bottom_anim
     - id: ${slot}_unfold_bottom_anim
       duration: 250ms
@@ -91,4 +94,6 @@ lvgl:
       on_stop:
         - lvgl.label.update:
             id: ${slot}_back_bottom_label
-            text: !lambda return std::to_string(id(${slot}_digit_value));
+            text:
+              mapping: digit_map
+              value: !lambda return id(${slot}_digit_value);
