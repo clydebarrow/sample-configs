@@ -46,6 +46,21 @@
 # by a pixel instead of gap by one; since both draw the same opaque flap
 # style, the overlap is invisible.
 #
+# The two *front* flaps are the ones that animate, and are each built as a
+# fixed, transparent clip "window" (the 51% half-height box, `_front_top` /
+# `_front_bottom`) holding a "card" (`_front_top_card` / `_front_bottom_card`)
+# the full cell height (`SIZE_CONTENT`, i.e. the glyph line): a flap face, positioned so its vertical
+# centre sits on the seam between the two halves, with the full glyph
+# inside. The window crops the card to the visible half at rest; the fold
+# animation then scales the whole card vertically about that centre
+# (`transform_pivot_y: 50%`), so background *and* digit squash toward the
+# seam together, like a real flap. (Shrinking just the background box with
+# `transform_height` was tried first, but a child label is only translated
+# along with its parent, never squashed, so the digit slid down out of view
+# instead of folding.) The scaled layer LVGL renders the card into is
+# clipped to the window, i.e. only the visible half-card, which keeps its
+# buffer small.
+#
 # Pairs with flip-digit-logic.yaml (globals/script/animations for this
 # slot), included separately via `packages:` since that part has no
 # nesting requirement.
@@ -96,22 +111,40 @@ obj:
         width: 100%
         height: 51%
         align: top_mid
-        styles: flap_style
+        styles: bare_container_style
         scrollable: false
         widgets:
-          - label:
-              id: ${slot}_front_top_label
-              text: "0"
+          - obj:
+              id: ${slot}_front_top_card
+              width: 100%
+              height: SIZE_CONTENT
               align: top_mid
+              styles: flap_style
+              scrollable: false
+              transform_pivot_y: 50%
+              widgets:
+                - label:
+                    id: ${slot}_front_top_label
+                    text: "0"
+                    align: top_mid
     - obj:
         id: ${slot}_front_bottom
         width: 100%
         height: 51%
         align: bottom_mid
-        styles: flap_style
+        styles: bare_container_style
         scrollable: false
         widgets:
-          - label:
-              id: ${slot}_front_bottom_label
-              text: "0"
+          - obj:
+              id: ${slot}_front_bottom_card
+              width: 100%
+              height: SIZE_CONTENT
               align: bottom_mid
+              styles: flap_style
+              scrollable: false
+              transform_pivot_y: 50%
+              widgets:
+                - label:
+                    id: ${slot}_front_bottom_label
+                    text: "0"
+                    align: bottom_mid

@@ -38,12 +38,24 @@ font:
     bpp: 4
     size: 64
   - file: "gfonts://Roboto"
+    id: font_small
+    bpp: 4
+    size: 16
+    # Covers weekday/month abbreviations, the date, and a signed
+    # temperature reading
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
     id: font_medium
     bpp: 4
     size: 28
     # Covers weekday/month abbreviations, the date, and a signed
     # temperature reading
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_temperature
+    bpp: 4
+    size: 40
+    glyphs: "C -0123456789°."
 
 # Needed for the `platform: homeassistant` sensors in weather-logic.yaml,
 # which pull the weather condition/temperature over the native API
@@ -69,14 +81,13 @@ packages:
     file: weather-widget.yaml
     vars:
       font: font_medium
-      # host.yaml's screen has no explicit theme/bg_color, so it renders
-      # with LVGL's default light background - dark text/icon reads
-      # clearly on it
-      #text_color: 0x000000
-      #icon_recolor: 0x000000
+      font_temperature: font_temperature
+      font_small: font_small
 
 lvgl:
   theme:
     dark_mode: true
   pad_top: 8px
-
+  debug_borders: true
+  on_click:
+    - logger.log: "LVGL root clicked"

@@ -30,24 +30,33 @@ packages:
     file: weather-widget.yaml
     vars:
       font: font_medium
-      # cyd.yaml sets lvgl.bg_color: black below - light text/icon reads
-      # clearly on it
-      text_color: 0xFFFFFF
-      icon_recolor: 0xFFFFFF
+      font_temperature: font_temperature
+      font_small: font_small
 
 font:
-  - file: "gfonts://Roboto@bold"
+  - file: "gfonts://Roboto"
     id: digit_font
     bpp: 4
-    size: 80
-    glyphs: "0123456789: "
+    size: 64
   - file: "gfonts://Roboto"
-    id: font_medium
+    id: font_small
     bpp: 4
-    size: 18
+    size: 16
     # Covers weekday/month abbreviations, the date, and a signed
     # temperature reading
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_medium
+    bpp: 4
+    size: 28
+    # Covers weekday/month abbreviations, the date, and a signed
+    # temperature reading
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_temperature
+    bpp: 4
+    size: 40
+    glyphs: "C -0123456789°."
 
 api:
   encryption:
@@ -65,6 +74,8 @@ time:
         - script.execute: clock_tick
 
 logger:
+  logs:
+    xpt2046: info
 
 sensor:
   - platform: adc
@@ -105,7 +116,7 @@ light:
     output: gpio_5_backlight_pwm
     id: backlight_id
     restore_mode: ALWAYS_ON
-    gamma_correct: 1.8
+    gamma_correct: 2.8
 
 spi:
   - id: disp_spi
@@ -137,10 +148,10 @@ touchscreen:
 display:
   - platform: mipi_spi
     spi_id: disp_spi
-    model: esp32-2432S028 # uses ili9341
     buffer_size: 12%
+    #model: esp32-2432S028 # uses ili9341
     #model: esp32-2432S028-9342 # Uses ILI9342
-    #model: esp32-2432S028-7789 # Uses ST7789V controller
+    model: esp32-2432S028-7789 # Uses ST7789V controller
 
 
 lvgl:
@@ -149,3 +160,13 @@ lvgl:
     dark_mode: true
   bg_color: black
   pad_top: 8px
+  clickable: true
+  on_click:
+    - logger.log:
+        format: "Click detected"
+  on_long_press:
+    - logger.log:
+        format: "Long press detected, turning off all lights"
+        level: INFO
+    - homeassistant.action:
+        action: script.lighting_all_off

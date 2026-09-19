@@ -10,6 +10,18 @@ substitutions:
   # itself - a bare glyph-width card reads as too narrow/cramped
   card_pad: 0px
 
+# Animating `transform_scale_y` and the `ease_in` timing curve are not in
+# the released lvgl component; the local esphome checkout's `lvgl-animation`
+# branch adds them (that branch isn't on origin yet - origin's copy lacks
+# these commits - hence the local file:// URL).
+#external_components:
+  #- source:
+      #type: git
+      #url: file:///Users/clyde/dev/opensourceprojects/esp/esphome
+      #ref: lvgl-animation
+    #components: [lvgl]
+    #refresh: always
+
 packages:
   h0_logic: !include
     file: flip-digit-logic.yaml

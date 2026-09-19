@@ -29,58 +29,50 @@ script:
       - lvgl.animation.start: ${slot}_fold_top_anim
 
 lvgl:
-  # The fold is done by shrinking each front flap to nothing (or growing it
-  # back) rather than via `transform_scale_y`: a scale transform forces LVGL
-  # to render the widget into an offscreen ARGB layer buffer sized to its
-  # full area before it can composite the scaled result, and that one-shot
-  # allocation (tens of KB per flap) reliably fails on PSRAM-less boards
-  # (e.g. cyd.yaml) once the heap has any fragmentation. `transform_height`
-  # + `translate_y` are plain style properties LVGL draws directly with no
-  # extra buffer, and combined they give the same hinge-anchored shrink:
-  # transform_height alone shrinks a widget symmetrically about its own
-  # center (LVGL's lv_area_increase moves both edges equally), so
-  # translate_y shifts it back by the same amount to pin the hinge edge
-  # (bottom for the top flap, top for the bottom flap) instead of the
-  # center. Full flap height isn't known until the font-derived layout
-  # resolves, so it's read at animation-start from the same-row `_back_*`
-  # sibling (always at the un-transformed cell size) rather than hardcoded.
+  # Each front flap is a fixed clip window (`_front_top`/`_front_bottom`)
+  # holding a full-cell-height card (`..._card`) centred on the seam - see
+  # flip-digit-widget.yaml. The fold scales that card vertically about the
+  # seam (`transform_scale_y`, pivot at 50% of the card) so the flap
+  # background and the digit squash together; only the window-clipped half
+  # of the card is ever visible. (Animating `transform_height` +
+  # `translate_y` on the flap instead avoids LVGL's offscreen layer buffer,
+  # but only the background box shrinks - a child label just gets
+  # translated - so the digit slides away rather than folding.)
+  #
+  # Animating `transform_scale_y` (and the `ease_in`/`ease_out` timings)
+  # needs the `lvgl-animation` branch of the lvgl component, pulled in via
+  # `external_components` in flip-clock.yaml. The fold eases in (the flap
+  # accelerates as it falls toward the seam) and the unfold eases out (the
+  # bottom flap decelerates as it settles flat).
+  #
+  # Once the scale reaches 0 the window is explicitly hidden anyway: LVGL
+  # doesn't reliably draw "nothing" for a fully collapsed transform, and a
+  # leftover 1px sliver of the flap's dark background is very visible
+  # cutting through a digit like "9". Likewise the scale is reset to full,
+  # and the window shown, only when the *next* fold begins.
   animations:
     - id: ${slot}_fold_top_anim
       duration: 250ms
-      timing: ease_in_out
-      # Collapsing via transform_height/translate_y alone isn't quite
-      # pixel-exact at the end of the shrink (LVGL doesn't always resolve a
-      # zero/negative transformed area to "draw nothing" cleanly - it can
-      # leave a 1px sliver of the flap's own background rendered right at
-      # the hinge, which is *very* visible cutting through digits like "9"
-      # whose glyph has a stroke crossing that exact row). Explicitly
-      # hiding the flap once it's supposed to be invisible (on_stop, below)
-      # and showing it again right as the next fold starts (on_start) sidesteps
-      # that rounding edge case entirely, rather than chasing exact transform math.
+      timing: ease_in
       on_start:
         - lvgl.widget.show: ${slot}_front_top
       widgets:
-        - id: ${slot}_front_top
-          # Use ceiling division (`(H + 1) / 2`), not `H / 2`: for odd H,
-          # truncating division makes transform_height and translate_y
-          # cancel 1px short of fully closed, leaving a 1px sliver of the
-          # old digit visibly stuck at the hinge after every flip. Ceiling
-          # division either closes exactly (even H) or overshoots by 1px
-          # (odd H, giving a harmless zero/negative-height, i.e. invisible,
-          # area) - either way, never leaves a visible remnant. The hinge
-          # edge itself stays exactly pinned regardless, since the same
-          # value is added and subtracted there.
-          transform_height:
-            from: 0
-            to: !lambda return -(lv_obj_get_height(id(${slot}_back_top)) + 1) / 2;
-          translate_y:
-            from: 0
-            to: !lambda return (lv_obj_get_height(id(${slot}_back_top)) + 1) / 2;
-      # top flap is now zero-height (fully folded into its bottom hinge) -
-      # swap its text then pop it straight back to full size, ready for the
-      # *next* flip
+        - id: ${slot}_front_top_card
+          transform_scale_y:
+            from: 1.0
+            to: 0.0
+      # top flap is now fully folded into the seam - hide it (and put its
+      # scale back to full, ready for the *next* flip), give both front
+      # flaps the new digit, collapse the bottom flap so the new digit is
+      # never briefly shown at full size, then unfold it
       on_stop:
         - lvgl.widget.hide: ${slot}_front_top
+        - lvgl.widget.update:
+            id: ${slot}_front_top_card
+            transform_scale_y: 1.0
+        - lvgl.widget.update:
+            id: ${slot}_front_bottom_card
+            transform_scale_y: 0.0
         - lvgl.label.update:
             id: ${slot}_front_top_label
             text: !lambda return std::to_string(id(${slot}_digit_value));
@@ -90,16 +82,12 @@ lvgl:
         - lvgl.animation.start: ${slot}_unfold_bottom_anim
     - id: ${slot}_unfold_bottom_anim
       duration: 250ms
-      timing: ease_in_out
+      timing: ease_out
       widgets:
-        - id: ${slot}_front_bottom
-          # See fold_top_anim above for why `(H + 1) / 2`, not `H / 2`.
-          transform_height:
-            from: !lambda return -(lv_obj_get_height(id(${slot}_back_bottom)) + 1) / 2;
-            to: 0
-          translate_y:
-            from: !lambda return -(lv_obj_get_height(id(${slot}_back_bottom)) + 1) / 2;
-            to: 0
+        - id: ${slot}_front_bottom_card
+          transform_scale_y:
+            from: 0.0
+            to: 1.0
       on_stop:
         - lvgl.label.update:
             id: ${slot}_back_bottom_label

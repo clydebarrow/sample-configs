@@ -28,47 +28,64 @@ lvgl:
       text_font: ${font}
       text_color: ${text_color}
       text_align: center
-    - id: debug
-      border_color: red
-      border_opa: cover
-      border_width: 1
   widgets:
-    - obj:
+    - container:
         id: weather_panel
         align: bottom_mid
-        styles: bare_container_style
         scrollable: false
         width: 100%
-        height: 50%
-        pad_bottom: 12px
-        layout: vertical
+        height: 65%
+        pad_bottom: 8px
         widgets:
           - label:
-              align: center
+              align: top_mid
+              width: 100%
               text_align: center
               id: date_label
               styles: info_text_style
               text: "---"
-          - obj:
-              styles: bare_container_style
-              scrollable: false
-              layout: horizontal
+          - container:
+              width: 100%
+              height: 60%
+              align: bottom_mid
               widgets:
-                - image:
-                    id: weather_icon
-                    src: icon_unknown
-                    image_recolor: ${icon_recolor}
-                    image_recolor_opa: cover
                 - container:
-                    layout: vertical
+                    clickable: false
+                    align: left_mid
+                    height: 100%
+                    width: 50%
+                    layout:
+                      type: flex
+                      flex_flow: column
+                      flex_align_track: center
+                      flex_align_main: space_between
+                      flex_align_cross: stretch
                     widgets:
                       - label:
+                          pad_all: 0
                           id: weather_condition_label
                           styles: info_text_style
-                          text_font: montserrat_16
+                          text_font: ${font_small}
                           text: "---"
+                      - image:
+                          id: weather_icon
+                          src: icon_unknown
+                          image_recolor: ${icon_recolor}
+                          image_recolor_opa: cover
+                - container:
+                    align: right_mid
+                    height: 100%
+                    width: 50%
+                    layout:
+                      type: flex
+                      flex_flow: column
+                      flex_align_track: center
+                      flex_align_main: center
+                      flex_align_cross: center
+                    widgets:
                       - label:
                           id: temperature_label
                           text_color: ${temperature_color}
                           styles: info_text_style
+                          text_font: ${font_temperature}
                           text: "---°C"
