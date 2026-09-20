@@ -45,7 +45,7 @@ esphome:
       - delay: 1500ms
       - script.execute:
           id: flip_4_digits
-          h0: 2
+          h0: 1
           h1: 3
           m0: 5
           m1: 9
@@ -58,9 +58,8 @@ esphome:
       # half a second of the still 23:59, then the rollover
       - delay: 500ms
       - script.execute:
-          id: flip_4_digits
-          h0: 0
-          h1: 0
+          id: flip_3_digits
+          h1: 4
           m0: 0
           m1: 0
 
