@@ -1,9 +1,13 @@
 # Sunton ESP32 2.8" 240x320 with touch
-# Flip clock 
+# Flip clock
 
 substitutions:
   name: flip-clock
   friendly_name: Flip Clock
+  # available vertical space for the clock + weather panel (the screen is
+  # rotated 90 degrees below, so this is the 320x240 landscape height); see
+  # clock-base.yaml/weather-base.yaml for how this drives font sizes
+  base_height: 240
 
 esp32:
   variant: esp32
@@ -15,48 +19,16 @@ esp32:
 
 packages:
   standard: !include standard.yaml
-  clock: !include
-    file: flip-clock.yaml
+  clock_base: !include
+    file: clock-base.yaml
     vars:
-      font: digit_font
-      align: top_mid
-      gap: 4px
-      card_pad: 10px
-  weather_logic: !include
-    file: weather-logic.yaml
-    vars:
+      base_height: ${base_height}
       time_id: sntp_time
-  weather_widget: !include
-    file: weather-widget.yaml
+  weather_base: !include
+    file: weather-base.yaml
     vars:
-      font: font_medium
-      font_temperature: font_temperature
-      font_small: font_small
-
-font:
-  - file: "gfonts://Roboto"
-    id: digit_font
-    bpp: 4
-    size: 64
-  - file: "gfonts://Roboto"
-    id: font_small
-    bpp: 4
-    size: 16
-    # Covers weekday/month abbreviations, the date, and a signed
-    # temperature reading
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
-  - file: "gfonts://Roboto"
-    id: font_medium
-    bpp: 4
-    size: 28
-    # Covers weekday/month abbreviations, the date, and a signed
-    # temperature reading
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
-  - file: "gfonts://Roboto"
-    id: font_temperature
-    bpp: 4
-    size: 40
-    glyphs: "C -0123456789°."
+      base_height: ${base_height}
+      time_id: sntp_time
 
 api:
   encryption:
@@ -66,12 +38,18 @@ ota:
   platform: esphome
   encryption:
 
+# real wall-clock time for the hardware; clock-base.yaml's clock_tick and
+# weather-base.yaml's date label are told to use it via `time_id` above
 time:
   - platform: sntp
     id: sntp_time
     on_time_sync:
       then:
         - script.execute: clock_tick
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: clock_tick
 
 logger:
   logs:
@@ -102,7 +80,7 @@ sensor:
         - light.turn_on:
             id: backlight_id
             brightness: !lambda return x;
-  # outside_temp is declared in weather-logic.yaml (shared with host.yaml)
+  # outside_temp is declared in weather-base.yaml (shared with host.yaml)
 
 output:
   - platform: ledc
@@ -170,3 +148,12 @@ lvgl:
         level: INFO
     - homeassistant.action:
         action: script.lighting_all_off
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: top_mid
+    - !include
+      file: weather-widget.yaml
+      vars:
+        align: bottom_mid

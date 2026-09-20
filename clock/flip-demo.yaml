@@ -3,21 +3,19 @@
 # in-memory snapshot display instead of an SDL window. Build, then run the
 # binary for ~10s; the GIF lands in .esphome/snapshots/flip-demo/.
 #
-# The clock also has its own real-time `clock_tick` (see flip-clock.yaml),
+# The clock also has its own real-time `clock_tick` (see clock-base.yaml),
 # which would flip the digits back to the actual time on the next minute
 # rollover - so don't start a run in the last few seconds of a minute.
 
 external_components:
-  - source:
-      type: git
-      url: file:///Users/clyde/dev/opensourceprojects/esp/esphome
-      ref: snapshot
+  - source: github://pr#19421
     components: [snapshot]
-    refresh: 30s
+    refresh: 1h
 
 substitutions:
   name: flip-demo
   friendly_name: Flip clock demo
+  base_height: 240
 
 esphome:
   name: ${name}
@@ -25,12 +23,13 @@ esphome:
   on_boot:
     priority: -100
     then:
-      # weather-logic.yaml's date interval doesn't first fire until a few
+      # weather-base.yaml's date interval doesn't first fire until a few
       # seconds in, which would make the date pop in mid-recording
       - lvgl.label.update:
           id: date_label
           text:
             time_format: "%a, %b %d"
+            time: clock_time
       # no Home Assistant here, so put representative weather on screen
       - lvgl.label.update:
           id: weather_condition_label
@@ -77,52 +76,44 @@ display:
       width: 320
       height: 240
 
-font:
-  - file: "gfonts://Roboto"
-    id: digit_font
-    bpp: 4
-    size: 64
-  - file: "gfonts://Roboto"
-    id: font_small
-    bpp: 4
-    size: 16
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
-  - file: "gfonts://Roboto"
-    id: font_medium
-    bpp: 4
-    size: 28
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
-  - file: "gfonts://Roboto"
-    id: font_temperature
-    bpp: 4
-    size: 40
-    glyphs: "C -0123456789°."
+time:
+  - platform: host
+    id: clock_time
+    on_time_sync:
+      then:
+        - script.execute: clock_tick
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: clock_tick
 
-# weather-logic.yaml's homeassistant sensors depend on the API component
+# weather-base.yaml's homeassistant sensors depend on the API component
 api:
   encryption:
     key: !secret encryption_key
 
 packages:
-  clock: !include
-    file: flip-clock.yaml
+  clock_base: !include
+    file: clock-base.yaml
     vars:
-      font: digit_font
-      gap: 4px
-      card_pad: 10px
-      align: top_mid
-  weather_logic: !include
-    file: weather-logic.yaml
-    vars:
+      base_height: ${base_height}
       time_id: clock_time
-  weather_widget: !include
-    file: weather-widget.yaml
+  weather_base: !include
+    file: weather-base.yaml
     vars:
-      font: font_medium
-      font_temperature: font_temperature
-      font_small: font_small
+      base_height: ${base_height}
+      time_id: clock_time
 
 lvgl:
   theme:
     dark_mode: true
   pad_top: 8px
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: top_mid
+    - !include
+      file: weather-widget.yaml
+      vars:
+        align: bottom_mid

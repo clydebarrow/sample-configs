@@ -1,0 +1,138 @@
+# Plumbing behind the status bar declared in weather-widget.yaml: today's
+# date, the current Home Assistant weather condition (mapped to an MDI icon
+# exactly like ../dexfield/smalltv-package.yaml, just driven into an LVGL
+# image instead of drawn straight to the display), the outside temperature
+# sensor, and the three fonts the status bar's labels use - sized off
+# `base_height`. Included via `packages:` (it declares top-level keys like
+# `font:`/`sensor:`/`image:`/`mapping:`, which only a package merge can
+# splice in) - pairs with the widget fragment in weather-widget.yaml, which
+# is what actually gets dropped into an LVGL `widgets:` list.
+#
+# `base_height` is the height (px) of the space the status bar is being
+# laid out in; every font size and the icon resize target are fixed
+# fractions of it, tuned against a 240px-tall panel (today's font_small=16,
+# font_medium=28, font_temperature=40, 60x60 icons).
+#
+# `time_id` names whichever already-declared `time:` platform gives real
+# wall-clock time on the target - `clock_time` for host.yaml, `sntp_time`
+# for cyd.yaml (see clock-base.yaml for the equivalent on the clock face).
+#
+# `weather_entity_id`/`outside_temp_entity_id` default to the entities this
+# was built against; override them per Home Assistant instance.
+#
+# Icons are `grayscale` + `alpha_channel` (an anti-aliased glyph on a
+# transparent background), paired with LVGL's `image_recolor` style
+# property so the one icon set can be tinted to suit either a light or dark
+# screen - see weather-widget.yaml's `icon_recolor` parameter.
+substitutions:
+  base_height: 240
+  time_id: clock_time
+  weather_entity_id: weather.forecast_dexfield_park
+  outside_temp_entity_id: sensor.st_00141258_temperature
+  font_small_size: ${math.floor(base_height / 15)}
+  font_medium_size: ${math.floor(base_height * 7 / 60)}
+  font_temperature_size: ${math.floor(base_height / 6)}
+  icon_size: ${math.floor(base_height / 4)}
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_small
+    bpp: 4
+    size: ${font_small_size}
+    # Covers weekday/month abbreviations, the date, and a signed
+    # temperature reading
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_medium
+    bpp: 4
+    size: ${font_medium_size}
+    # Covers weekday/month abbreviations, the date, and a signed
+    # temperature reading
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz, -0123456789°."
+  - file: "gfonts://Roboto"
+    id: font_temperature
+    bpp: 4
+    size: ${font_temperature_size}
+    glyphs: "C -0123456789°."
+
+text_sensor:
+  - platform: homeassistant
+    id: weather_condition
+    entity_id: ${weather_entity_id}
+    on_value:
+      - lvgl.image.update:
+          id: weather_icon
+          src:
+            mapping: weather_icons
+            value: !lambda return x;
+      - lvgl.label.update:
+          id: weather_condition_label
+          text: !lambda |-
+            std::string c = x;
+            if (!c.empty())
+              c[0] = toupper(c[0]);
+            return c;
+
+sensor:
+  - platform: homeassistant
+    id: outside_temp
+    entity_id: ${outside_temp_entity_id}
+    on_value:
+      - lvgl.label.update:
+          id: temperature_label
+          text:
+            format: "%.1f°C"
+            args: [x]
+
+interval:
+  - interval: 30s
+    then:
+      - lvgl.label.update:
+          id: date_label
+          text:
+            time_format: "%a, %b %d"
+            time: ${time_id}
+
+image:
+  - platform: file
+    defaults:
+      type: grayscale
+      transparency: alpha_channel
+      resize: ${icon_size}x${icon_size}
+    files:
+      - file: "mdi:weather-sunny"
+        id: icon_sunny
+      - file: "mdi:weather-cloudy"
+        id: icon_cloudy
+      - file: "mdi:weather-partly-cloudy"
+        id: icon_partly_cloudy
+      - file: "mdi:weather-pouring"
+        id: icon_pouring
+      - file: "mdi:weather-rainy"
+        id: icon_rainy
+      - file: "mdi:weather-snowy"
+        id: icon_snowy
+      - file: "mdi:weather-lightning"
+        id: icon_thunder
+      - file: "mdi:weather-night"
+        id: icon_weather_night
+      - file: "mdi:alert-outline"
+        id: icon_unknown
+
+mapping:
+  - id: weather_icons
+    from: string
+    to: image
+    default_value: icon_unknown
+    entries:
+      sunny: icon_sunny
+      clear-night: icon_weather_night
+      cloudy: icon_cloudy
+      fog: icon_cloudy
+      partly_cloudy: icon_partly_cloudy
+      partlycloudy: icon_partly_cloudy
+      rainy: icon_rainy
+      pouring: icon_pouring
+      snowy: icon_snowy
+      lightning: icon_thunder
+      lightning-rainy: icon_thunder

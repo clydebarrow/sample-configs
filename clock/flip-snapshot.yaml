@@ -1,6 +1,8 @@
 substitutions:
   name: host-lvgl-snap
   friendly_name: Host lvgl snapshot debug
+  # yields the same 120pt digit font this file used to hardcode directly
+  base_height: 450
 
 esphome:
   name: ${name}
@@ -45,19 +47,25 @@ display:
       width: 1280
       height: 800
 
-font:
-  - file: "gfonts://Roboto"
-    id: digit_font
-    bpp: 4
-    size: 120
-
 interval:
   - interval: 40ms
     then:
       - snapshot.take: snap_display
 
 packages:
-  clock: !include
-    file: flip-clock.yaml
+  clock_base: !include
+    file: clock-base.yaml
     vars:
-      font: digit_font
+      base_height: ${base_height}
+      time_id: clock_time
+
+time:
+  - platform: host
+    id: clock_time
+
+lvgl:
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: center

@@ -52,7 +52,7 @@ lvgl:
   animations:
     - id: ${slot}_fold_top_anim
       duration: 250ms
-      timing: ease_in
+      timing: ease_in_out
       on_start:
         - lvgl.widget.show: ${slot}_front_top
       widgets:
@@ -85,7 +85,7 @@ lvgl:
         - lvgl.animation.start: ${slot}_unfold_bottom_anim
     - id: ${slot}_unfold_bottom_anim
       duration: 250ms
-      timing: ease_out
+      timing: ease_in_out
       widgets:
         - id: ${slot}_front_bottom_card
           transform_scale_y:

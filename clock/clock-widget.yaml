@@ -1,0 +1,68 @@
+# The split-flap HH:MM clock face, as a widget *fragment* (its root is a
+# bare `obj:` mapping, not wrapped in `lvgl: widgets: [...]`) so it can be
+# dropped straight into any parent's `widgets:` list with a plain inline
+# `!include` - the screen root, or a panel nested deep inside some larger
+# layout (packages can only append to the *same* top-level list as their
+# includer; an inline !include can nest anywhere - see
+# flip-digit-widget.yaml for the same trick one level down).
+#
+# Pairs with clock-base.yaml (packages: - not nested - since it declares
+# `font:`/`script:`/`mapping:`/`packages:`, which only a package merge can
+# splice in); that file must be included first so `digit_font` and the
+# `${gap}`/`${card_pad}` substitutions it derives from `base_height` exist
+# by the time this fragment references them.
+#
+# Only `align` is a parameter here (LVGL's own alignment keyword, e.g.
+# `top_mid`, `center`) - where a clock face sits within its parent is a
+# layout decision for whoever is embedding it, not something derivable from
+# `base_height`, so every includer must supply it explicitly.
+obj:
+  id: clock_root
+  align: ${align}
+  styles: bare_container_style
+  scrollable: false
+  width: SIZE_CONTENT
+  height: SIZE_CONTENT
+  layout:
+    type: flex
+    flex_flow: row
+    flex_align_main: center
+    flex_align_cross: center
+    pad_column: ${gap}
+  widgets:
+    - !include
+      file: flip-digit-widget.yaml
+      vars:
+        slot: h0
+        font: digit_font
+        pad: ${card_pad}
+    - !include
+      file: flip-digit-widget.yaml
+      vars:
+        slot: h1
+        font: digit_font
+        pad: ${card_pad}
+    - container:
+        id: colon
+        width: size_content
+        text_align: center
+        height: SIZE_CONTENT
+        styles: bare_container_style
+        scrollable: false
+        widgets:
+          label:
+            text: ":"
+            text_font: digit_font
+            align: center
+    - !include
+      file: flip-digit-widget.yaml
+      vars:
+        slot: m0
+        font: digit_font
+        pad: ${card_pad}
+    - !include
+      file: flip-digit-widget.yaml
+      vars:
+        slot: m1
+        font: digit_font
+        pad: ${card_pad}
