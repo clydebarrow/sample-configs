@@ -1,7 +1,8 @@
 # Plumbing for the split-flap clock: per-digit state/scripts (via
 # flip-digit-logic.yaml), the digit->glyph mapping, the driver scripts that
 # flip a synchronized run of digits on a time tick, and the digit font -
-# sized off `base_height`. Included via `packages:` (it declares top-level
+# sized off `base_height`.
+# Included via `packages:` (it declares top-level
 # keys like `font:`/`script:`/`mapping:`, which only a package merge can
 # splice in) - pairs with the widget fragment in clock-widget.yaml, which is
 # what actually gets dropped into an LVGL `widgets:` list.

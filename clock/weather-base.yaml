@@ -83,6 +83,7 @@ sensor:
           text:
             format: "%.1f°C"
             args: [x]
+            if_nan: "---°C"
 
 interval:
   - interval: 30s

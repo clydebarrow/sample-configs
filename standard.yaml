@@ -7,6 +7,7 @@ logger:
   level: DEBUG
 
 debug:
+  update_interval: 5s
 
 packages:
   - !include wifi-package.yaml
@@ -39,4 +40,16 @@ text_sensor:
 sensor:
   - platform: wifi_signal
     name: "WiFi Signal"
-    update_interval: 30s
+    update_interval: 5s
+
+  - platform: debug
+    free:
+      name: "Heap Free"
+    block:
+      name: "Heap Max Block"
+    min_free:
+      name: "Heap Min Free"
+    fragmentation:
+      name: "Heap Fragmentation"
+    loop_time:
+      name: "Loop Time"

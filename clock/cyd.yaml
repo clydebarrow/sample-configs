@@ -6,7 +6,7 @@ substitutions:
   friendly_name: Flip Clock
   # available vertical space for the clock + weather panel (the screen is
   # rotated 90 degrees below, so this is the 320x240 landscape height); see
-  # clock-base.yaml/weather-base.yaml for how this drives font sizes
+  # clock-base.yaml/weather-base.yaml for how this drives font sizes.
   base_height: 240
 
 esp32:
@@ -23,12 +23,12 @@ packages:
     file: clock-base.yaml
     vars:
       base_height: ${base_height}
-      time_id: sntp_time
+      time_id: time_id
   weather_base: !include
     file: weather-base.yaml
     vars:
       base_height: ${base_height}
-      time_id: sntp_time
+      time_id: time_id
 
 api:
   encryption:
@@ -41,8 +41,8 @@ ota:
 # real wall-clock time for the hardware; clock-base.yaml's clock_tick and
 # weather-base.yaml's date label are told to use it via `time_id` above
 time:
-  - platform: sntp
-    id: sntp_time
+  - platform: homeassistant
+    id: time_id
     on_time_sync:
       then:
         - script.execute: clock_tick
@@ -126,26 +126,24 @@ touchscreen:
 display:
   - platform: mipi_spi
     spi_id: disp_spi
-    buffer_size: 12%
     #model: esp32-2432S028 # uses ili9341
     #model: esp32-2432S028-9342 # Uses ILI9342
     model: esp32-2432S028-7789 # Uses ST7789V controller
 
 
 lvgl:
+  buffer_size: 50%
   rotation: 90
   theme:
     dark_mode: true
   bg_color: black
   pad_top: 8px
-  clickable: true
   on_click:
     - logger.log:
         format: "Click detected"
   on_long_press:
     - logger.log:
         format: "Long press detected, turning off all lights"
-        level: INFO
     - homeassistant.action:
         action: script.lighting_all_off
   widgets:
