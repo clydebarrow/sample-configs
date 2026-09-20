@@ -110,7 +110,7 @@ overridden.
 ## Construction
 
 The hardware target (`cyd.yaml`) is a [Sunton
-ESP32-2432S028](https://github.com/rzeldent/esp32-smartdisplay) ("CYD" -
+ESP32-2432S028](https://randomnerdtutorials.com/cheap-yellow-display-esp32-2432s028r/) ("CYD" -
 Cheap Yellow Display) 2.8" 240x320 touchscreen board, in a 3D-printed case:
 [Desk stand for XTouch using
 ESP32-2432S028](https://makerworld.com/en/models/49607-desk-stand-for-xtouch-using-esp32-2432s028)
