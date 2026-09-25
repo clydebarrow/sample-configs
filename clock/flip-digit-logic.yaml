@@ -44,10 +44,8 @@ lvgl:
   # accelerates as it falls toward the seam) and the unfold eases out (the
   # bottom flap decelerates as it settles flat).
   #
-  # The fold goes to 0.004, not all the way to 0: stock LVGL's software
-  # renderer divides by the transform scale when mapping destination pixels
-  # back into source space (lv_draw_sw_transform.c), with no zero-guard - an
-  # actual 0 crashes with a divide-by-zero the instant the fold finishes.
+  # The fold goes to 0.004, not all the way to 0: in LVGL 9.5.0 a zero scale
+  # causes a memory leak due a buggy early return.
   # (Reported upstream and patched in our own LVGL checkout, but this keeps
   # the clock working against an unpatched LVGL too.) The scale style
   # property is fixed-point out of 256 (256 = 1.0), so 1/256 ≈ 0.0039 is the
