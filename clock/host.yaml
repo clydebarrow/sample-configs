@@ -1,0 +1,83 @@
+
+substitutions:
+  name: host-lvgl
+  friendly_name: Host lvgl test
+  # available vertical space for the clock + weather panel; see
+  # clock-base.yaml/weather-base.yaml for how this drives font sizes
+  base_height: 240
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  platformio_options:
+    #lib_deps:
+    #  - symlink:///Users/clyde/dev/opensourceprojects/piolibs/lvgl
+    build_flags:
+    - -g3
+  on_boot:
+    script.execute: clock_tick
+
+host:
+  mac_address: "62:23:45:AF:B3:DD"
+
+network:
+
+logger:
+
+touchscreen:
+  - platform: sdl
+    id: sdl_touchscreen
+
+display:
+  - platform: sdl
+    id: display_id
+    dimensions:
+      width: 320
+      height: 240
+
+# real wall-clock time for the host binary; clock-base.yaml's clock_tick
+# and weather-base.yaml's date label are told to use it via `time_id` below
+time:
+  - platform: host
+    id: clock_time
+    on_time_sync:
+      then:
+        - script.execute: clock_tick
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: clock_tick
+
+# Needed for the `platform: homeassistant` sensors in weather-base.yaml,
+# which pull the weather condition/temperature over the native API
+api:
+  encryption:
+    key: !secret encryption_key
+
+packages:
+  clock_base: !include
+    file: clock-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: clock_time
+  weather_base: !include
+    file: weather-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: clock_time
+
+lvgl:
+  theme:
+    dark_mode: true
+  pad_top: 8px
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: top_mid
+    - !include
+      file: weather-widget.yaml
+      vars:
+        align: bottom_mid
+        # dark_mode theme above - white text/icon (weather-widget.yaml's
+        # default) reads clearly on it, same as cyd.yaml

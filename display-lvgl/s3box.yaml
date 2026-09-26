@@ -4,9 +4,7 @@ esphome:
   friendly_name: ESP32 S3 Box
 
 esp32:
-  board: esp32s3box
-  framework:
-    type: esp-idf
+  variant: esp32s3
 
 logger:
 
@@ -23,30 +21,25 @@ binary_sensor:
 i2c:
   - scl: 18
     sda: 8
-    id: i2c_onboard
     frequency: 400kHz
 
 spi:
   mosi_pin: 6
   clk_pin: 7
-  interface: hardware
+
+touchscreen:
+  - platform: gt911
+    interrupt_pin:
+      number: GPIO3
+      ignore_strapping_warning: true
 
 display:
   - platform: mipi_spi
     id: lcd_display
     model: s3box
-
-power_supply:
-  - pin: 47
-    id: backlight
-    enable_on_boot: true
-
-touchscreen:
-  - platform: gt911
-    display: lcd_display
-    id: gt911_touchscreen
-    interrupt_pin:
-      number: GPIO3
-      ignore_strapping_warning: true
+    enable_pin: 47 # backlight
+    reset_pin:
+      inverted: true
+      number: 48
 
 lvgl:

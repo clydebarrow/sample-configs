@@ -1,0 +1,245 @@
+esp32:
+  variant: esp32s3
+  flash_size: 32MB
+  framework:
+    type: esp-idf
+    advanced:
+      enable_idf_experimental_features: true
+
+substitutions:
+  name: picture
+  friendly_name: Picture Frame
+
+esphome:
+  on_boot:
+    - rtttl.play: "two_short:d=4,o=5,b=100:16e6,16e6"
+
+psram:
+  mode: octal
+
+packages:
+  - !include standard.yaml
+
+logger:
+  hardware_uart: UART0
+
+http_request:
+
+image:
+  - platform: online_image
+    url: https://storage.googleapis.com/dexfieldpark-daily-image/latest.png
+    id: daily_image
+    format: PNG
+    type: RGB565
+    resize: 1200x1600
+    on_download_finished:
+      - lvgl.image.update:
+          src: daily_image
+          id: lv_image
+      - logger.log: Updated image
+      - lvgl.label.update:
+          id: date_label
+          text:
+            time_format: "%a %d %b"
+      - lvgl.resume:
+
+spi:
+  clk_pin: GPIO7
+  mosi_pin: GPIO9
+  miso_pin: GPIO8
+
+display:
+  - platform: epaper_spi
+    model: seeed-reterminal-e1004
+    id: display_id
+
+lvgl:
+  update_when_display_idle: true
+  paused: true
+  buffer_size: 25%
+  widgets:
+    - image:
+        id: lv_image
+        src: daily_image
+    - label:
+        align: bottom_right
+        id: date_label
+        text_font: roboto
+        text_color: white
+        pad_all: 40
+    - label:
+        align: bottom_left
+        id: battery_label
+        text_font: battery_font
+        text_color: white
+        pad_all: 20
+
+
+wifi:
+  on_connect:
+    - script.execute: run_once_awake
+        
+font:
+  - file:
+      type: gfonts
+      family: "Roboto"
+    id: battery_font
+    glyphs: "0123456789% "
+    size: 40
+    extras:
+    - file:
+        type: gfonts
+        family: "Material Symbols Outlined"
+        weight: 400
+      glyphs:
+        - "\U0000E1A4"  # battery_full
+        - "\U0000EBD2"  # battery_6_bar
+        - "\U0000EBD4"  # battery_5_bar
+        - "\U0000EBE2"  # battery_4_bar
+        - "\U0000EBDD"  # battery_3_bar
+        - "\U0000EBE0"  # battery_2_bar
+        - "\U0000EBD9"  # battery_1_bar
+        - "\U0000EBDC"  # battery_alert (empty/critical)
+  - file: "gfonts://Roboto"
+    id: roboto
+    bpp: 4
+    size: 96
+    glyphs: "0123456789 MonTuWedhFriSatbAyJlgOcNvDp"
+
+time:
+  - platform: sntp
+    id: sntp_time
+
+script:
+  - id: run_once_awake
+    then:
+      - switch.turn_on: battery_volts_enable
+      - wait_until:
+          timeout: 15s
+          condition:
+            time.has_time:
+              id: sntp_time
+      - logger.log: "Running daily 4am task"
+      - component.update: daily_image
+      - logger.log: Update completed
+      - delay: 5s
+      - component.update: battery_volts
+      - switch.turn_off: battery_volts_enable
+      - delay: 20s
+      - wait_until:
+          component.is_idle: display_id
+      - script.execute: go_to_sleep_until_4am
+
+  - id: go_to_sleep_until_4am
+    then:
+      - lambda: |-
+          auto t = id(sntp_time).now();
+          int seconds_now = t.hour * 3600 + t.minute * 60 + t.second;
+          int target = 4 * 3600; // 4:00 AM in seconds
+          int seconds_until_target = target - seconds_now;
+          if (seconds_until_target <= 0) {
+            seconds_until_target += 24 * 3600; // already past 4am, wait for tomorrow
+          }
+          ESP_LOGI("deep_sleep", "Sleeping for %d seconds until 4am", seconds_until_target);
+          id(deep_sleep_1).set_sleep_duration(seconds_until_target * 1000); // ms
+          id(deep_sleep_1).begin_sleep();
+
+deep_sleep:
+  id: deep_sleep_1
+  run_duration: 240s
+  wakeup_pin:
+    number: 5
+    inverted: true
+    allow_other_uses: true
+  wakeup_pin_mode: keep_awake
+
+
+switch:
+  - platform: gpio
+    id: battery_volts_enable
+    pin: 21
+
+sensor:
+  - platform: adc
+    pin: GPIO1
+    id: battery_volts
+    attenuation: 12db
+    name: "Battery"
+    update_interval: never
+    device_class: battery
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:battery"
+    filters:
+      - multiply: 2.0
+      - calibrate_linear:
+          - 4.15 -> 100.0
+          - 3.96 -> 90.0
+          - 3.91 -> 80.0
+          - 3.85 -> 70.0
+          - 3.80 -> 60.0
+          - 3.75 -> 50.0
+          - 3.68 -> 40.0
+          - 3.58 -> 30.0
+          - 3.49 -> 20.0
+          - 3.41 -> 10.0
+          - 3.30 -> 5.0
+          - 3.27 -> 0.0
+      - clamp:
+          max_value: 100
+          min_value: 0
+    on_value:
+    - lvgl.label.update:
+        id: battery_label
+        text:
+          mapping: battery_level
+          value: !lambda "return (int) (x / 100 * 8);"
+
+
+mapping:
+  - id: battery_level
+    from: int
+    to: string
+    entries:
+      8: "\U0000E1A4"  # battery_full
+      7: "\U0000E1A4"  # battery_full
+      6: "\U0000EBD2"  # battery_6_bar
+      5: "\U0000EBD4"  # battery_5_bar
+      4: "\U0000EBE2"  # battery_4_bar
+      3: "\U0000EBDD"  # battery_3_bar
+      2: "\U0000EBE0"  # battery_2_bar
+      1: "\U0000EBD9"  # battery_1_bar
+      0: "\U0000EBDC"  # battery_alert (empty/critical)
+      
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 5
+      allow_other_uses: true
+      inverted: true
+    name: Refresh button
+  - platform: gpio
+    pin:
+      number: 4
+      inverted: true
+    name: Left button
+  - platform: gpio
+    pin:
+      number: 3
+      ignore_strapping_warning: true
+      inverted: true
+    name: Right button
+
+
+output:
+  - platform: ledc
+    id: buzzer
+    pin:
+      ignore_strapping_warning: true
+      number: GPIO45
+
+rtttl:
+  output: buzzer
+  id: my_rtttl
+  gain: 60%

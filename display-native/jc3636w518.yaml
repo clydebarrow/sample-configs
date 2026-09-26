@@ -10,11 +10,8 @@ esp32:
   board: esp32-s3-devkitc-1
   framework: 
     type: esp-idf
-    sdkconfig_options: 
-      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
-      CONFIG_SPIRAM_RODATA: y
+    advanced:
+      execute_from_psram: true
 
 logger: 
 
@@ -40,11 +37,18 @@ power_supply:
 
 display: 
   - platform: mipi_spi
+    id: disp_id
     model: jc3636w518
-      
+    
 touchscreen:
   platform: cst816
   id: my_touchscreen
   interrupt_pin: GPIO41
   reset_pin: GPIO40
+  on_touch:
+    - lambda:
+        auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+        id(disp_id).set_rotation((display::DisplayRotation)rotation);
+        id(disp_id).update();
+        
 

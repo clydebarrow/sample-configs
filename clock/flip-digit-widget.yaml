@@ -1,0 +1,150 @@
+# Single split-flap digit cell, as a widget *fragment* (its root is a bare
+# `obj:` mapping, not wrapped in `lvgl: widgets: [...]`) so it can be spliced
+# straight into a parent's `widgets:` list with a plain inline `!include`
+# (packages can only append to the *same* top-level list as their includer,
+# they can't nest into an arbitrary container - an inline !include can).
+#
+# Parameterized by `slot` (id prefix, keeps four instances from colliding),
+# `font` (an already-declared font id) and `pad` (horizontal breathing room
+# added each side of the digit glyph, e.g. "8px" - a card sized to the bare
+# glyph width reads as too narrow). Sizing is derived from that font, not
+# hardcoded pixels: the cell has no `layout:` at all, just a `SIZE_CONTENT`
+# root sized from a single invisible "8" reference label (fixed glyph so
+# the cell doesn't change width as the displayed digit changes; `pad` is
+# applied to this label's left/right padding, which grows its own
+# content-size contribution and so the whole cell, without affecting its
+# height), plus four flap faces stacked on top of it at plain `100% x 51%`
+# with `align: top_mid`/`bottom_mid` (see below for why 51%, not an exact
+# 50%).
+#
+# An earlier version used a `grid` (FR rows under a SIZE_CONTENT parent) to
+# get the equal-halves split, since a percentage-sized child of a
+# SIZE_CONTENT parent is a known-fragile combination in LVGL. That traded
+# one fragile case for a worse one: LVGL's grid solver silently abandons
+# content-based sizing (falling back to the LV_DPI_DEF constant, 130px) for
+# *any* axis of a cell that mixes a naturally-sized item with a
+# STRETCH-aligned sibling in the same cell - exactly what
+# `multiple_widgets_per_cell` does here for the flap faces. That bug is
+# invisible at a large font (130px happens to be in the right ballpark) but
+# produces grossly oversized flaps at a small one (verified: at font size
+# 30 the grid version rendered 130x130px cells instead of the correct
+# 17x35). Plain percentage sizing on non-layout children, by contrast,
+# was verified (via a throwaway LVGL build) to resolve correctly against
+# the reference label's already-known content size in this LVGL version,
+# so it's the actually-reliable choice here despite the old assumption.
+#
+# Each flap label is intentionally taller (a full glyph) than its flap's
+# ~50%-height box - combined with the flap's `clip_corner: true` (in
+# `flap_style`), that crops it to just the top or bottom half of the digit,
+# which is the actual split-flap look.
+#
+# The flaps are sized 51%, not 50%: LVGL truncates percentage sizes
+# (`floor(height * 0.5)` for each half), which for an odd cell height loses
+# a row - e.g. a 75px-tall cell gives two 37px halves, leaving row 37
+# uncovered and the transparent background showing through as a thin line
+# across the middle of the digit. The extra 1% makes the two flaps overlap
+# by a pixel instead of gap by one; since both draw the same opaque flap
+# style, the overlap is invisible.
+#
+# The two *front* flaps are the ones that animate, and are each built as a
+# fixed, transparent clip "window" (the 51% half-height box, `_front_top` /
+# `_front_bottom`) holding a "card" (`_front_top_card` / `_front_bottom_card`)
+# the full cell height (`SIZE_CONTENT`, i.e. the glyph line): a flap face, positioned so its vertical
+# centre sits on the seam between the two halves, with the full glyph
+# inside. The window crops the card to the visible half at rest; the fold
+# animation then scales the whole card vertically about that centre
+# (`transform_pivot_y: 50%`), so background *and* digit squash toward the
+# seam together, like a real flap. (Shrinking just the background box with
+# `transform_height` was tried first, but a child label is only translated
+# along with its parent, never squashed, so the digit slid down out of view
+# instead of folding.) The scaled layer LVGL renders the card into is
+# clipped to the window, i.e. only the visible half-card, which keeps its
+# buffer small.
+#
+# Pairs with flip-digit-logic.yaml (globals/script/animations for this
+# slot), included separately via `packages:` since that part has no
+# nesting requirement.
+obj:
+  id: ${slot}_digit_root
+  styles: bare_container_style
+  scrollable: false
+  width: SIZE_CONTENT
+  height: SIZE_CONTENT
+  widgets:
+    # invisible sizing reference - establishes the cell's font-derived
+    # width/height; the four flap faces below just stretch to 100%/50% of it
+    - label:
+        text: "8"
+        text_font: ${font}
+        text_opa: 0
+        pad_top: 0
+        pad_bottom: 0
+        pad_left: ${pad}
+        pad_right: ${pad}
+        align: top_left
+    - obj:
+        id: ${slot}_back_top
+        width: 100%
+        height: 51%
+        align: top_mid
+        styles: flap_style
+        scrollable: false
+        widgets:
+          - label:
+              id: ${slot}_back_top_label
+              text: "0"
+              align: top_mid
+    - obj:
+        id: ${slot}_back_bottom
+        width: 100%
+        height: 51%
+        align: bottom_mid
+        styles: flap_style
+        scrollable: false
+        widgets:
+          - label:
+              id: ${slot}_back_bottom_label
+              text: "0"
+              align: bottom_mid
+    - obj:
+        id: ${slot}_front_top
+        width: 100%
+        height: 51%
+        align: top_mid
+        styles: bare_container_style
+        scrollable: false
+        widgets:
+          - obj:
+              id: ${slot}_front_top_card
+              width: 100%
+              height: SIZE_CONTENT
+              align: top_mid
+              styles: flap_style
+              scrollable: false
+              transform_pivot_y: 50%
+              widgets:
+                - label:
+                    id: ${slot}_front_top_label
+                    text: "0"
+                    align: top_mid
+    - obj:
+        id: ${slot}_front_bottom
+        width: 100%
+        height: 51%
+        align: bottom_mid
+        styles: bare_container_style
+        scrollable: false
+        widgets:
+          - obj:
+              id: ${slot}_front_bottom_card
+              width: 100%
+              height: SIZE_CONTENT
+              align: bottom_mid
+              styles: flap_style
+              scrollable: false
+              transform_pivot_y: 50%
+              widgets:
+                - label:
+                    id: ${slot}_front_bottom_label
+                    text: "0"
+                    align: bottom_mid

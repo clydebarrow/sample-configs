@@ -1,3 +1,4 @@
 wifi.yaml
 secrets.yaml
 .esphome/
+.idea/

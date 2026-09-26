@@ -1,0 +1,157 @@
+# Sunton ESP32 2.8" 240x320 with touch
+# Flip clock
+
+substitutions:
+  name: flip-clock
+  friendly_name: Flip Clock
+  # available vertical space for the clock + weather panel (the screen is
+  # rotated 90 degrees below, so this is the 320x240 landscape height); see
+  # clock-base.yaml/weather-base.yaml for how this drives font sizes.
+  base_height: 240
+
+esp32:
+  variant: esp32
+  framework:
+    type: esp-idf
+    advanced:
+      minimum_chip_revision: "3.0"
+      sram1_as_iram: true
+
+packages:
+  standard: !include standard.yaml
+  clock_base: !include
+    file: clock-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: time_id
+  weather_base: !include
+    file: weather-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: time_id
+
+api:
+  encryption:
+    key: !secret encryption_key
+
+ota:
+  platform: esphome
+  encryption:
+
+# real wall-clock time for the hardware; clock-base.yaml's clock_tick and
+# weather-base.yaml's date label are told to use it via `time_id` above
+time:
+  - platform: homeassistant
+    id: time_id
+    on_time_sync:
+      then:
+        - script.execute: clock_tick
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: clock_tick
+
+logger:
+  logs:
+    xpt2046: info
+
+sensor:
+  - platform: adc
+    pin: GPIO34
+    id: ldr_voltage
+    name: LDR voltage
+    attenuation: auto
+    update_interval: 2s
+    accuracy_decimals: 2
+
+  - platform: copy
+    source_id: ldr_voltage
+    id: ambient_light
+    name: Ambient Light
+    unit_of_measurement: "%"
+    filters:
+      - multiply: -0.3
+      - offset: 1.0
+      - clamp:
+          max_value: 1.0
+          min_value: 0.1
+    on_value:
+      then:
+        - light.turn_on:
+            id: backlight_id
+            brightness: !lambda return x;
+  # outside_temp is declared in weather-base.yaml (shared with host.yaml)
+
+output:
+  - platform: ledc
+    id: gpio_5_backlight_pwm
+    pin: 21
+    frequency: 44100
+    inverted: false
+
+light:
+  - platform: monochromatic
+    output: gpio_5_backlight_pwm
+    id: backlight_id
+    restore_mode: ALWAYS_ON
+    gamma_correct: 2.8
+
+spi:
+  - id: disp_spi
+    clk_pin: 14
+    mosi_pin: 13
+  - id: touch_spi
+    clk_pin: 25
+    mosi_pin: 32
+    miso_pin: 39
+
+touchscreen:
+  platform: xpt2046
+  spi_id: touch_spi
+  id: my_touchscreen
+  cs_pin: 33
+  interrupt_pin: 36
+  update_interval: 50ms
+  threshold: 400
+  transform:
+    swap_xy: false
+    mirror_y: false
+    mirror_x: true
+  calibration:
+    x_min: 367
+    x_max: 3355
+    y_min: 296
+    y_max: 3642
+
+display:
+  - platform: mipi_spi
+    spi_id: disp_spi
+    #model: esp32-2432S028 # uses ili9341
+    #model: esp32-2432S028-9342 # Uses ILI9342
+    model: esp32-2432S028-7789 # Uses ST7789V controller
+
+
+lvgl:
+  buffer_size: 50%
+  rotation: 90
+  theme:
+    dark_mode: true
+  bg_color: black
+  pad_top: 8px
+  on_click:
+    - logger.log:
+        format: "Click detected"
+  on_long_press:
+    - logger.log:
+        format: "Long press detected, turning off all lights"
+    - homeassistant.action:
+        action: script.lighting_all_off
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: top_mid
+    - !include
+      file: weather-widget.yaml
+      vars:
+        align: bottom_mid

@@ -1,0 +1,61 @@
+esphome:
+  name: crowpanel-7
+  friendly_name: Crowpanel 7 Advance
+
+esp32:
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    advanced:
+      execute_from_psram: false
+
+# Enable logging
+logger:
+  hardware_uart: UART0
+
+psram:
+  mode: octal
+  speed: 80MHz 
+
+output:
+  - platform: ledc
+    pin: 2
+    frequency: 1220
+    id: gpio_backlight_pwm
+
+light:
+  - platform: monochromatic
+    output: gpio_backlight_pwm
+    name: Display Backlight
+    id: back_light
+    restore_mode: ALWAYS_ON
+    gamma_correct: 1.0
+
+i2c:
+  sda: 15
+  scl: 16
+
+pca9554:
+  - id: 'pca9557_device'
+    address: 0x18
+
+
+touchscreen:
+  - platform: gt911
+    interrupt_pin: 1
+    on_touch: 
+      - logger.log:
+          format: "Touch event at x: %d, y: %d"
+          args: [ 'touch.x', 'touch.y' ]
+    
+
+display:
+  - platform: mipi_rgb
+    model: CROWPANEL-ADVANCE-7
+    id: my_display
+    enable_pin:
+      pca9554:
+      number: 1
+
+lvgl:

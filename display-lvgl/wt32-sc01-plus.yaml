@@ -55,6 +55,6 @@ display:
     id: w32_disp
     model: wt32-sc01-plus
     data_rate: 10MHz
-    rotation: 90
 
 lvgl:
+  rotation: 180

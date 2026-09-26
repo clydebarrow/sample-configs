@@ -1,0 +1,119 @@
+# Host-only config that records demo.gif: the clock (with the weather bar)
+# flipping over from 23:59 to 00:00. Same layout as host.yaml, but with the
+# in-memory snapshot display instead of an SDL window. Build, then run the
+# binary for ~10s; the GIF lands in .esphome/snapshots/flip-demo/.
+#
+# The clock also has its own real-time `clock_tick` (see clock-base.yaml),
+# which would flip the digits back to the actual time on the next minute
+# rollover - so don't start a run in the last few seconds of a minute.
+
+external_components:
+  - source: github://pr#19421
+    components: [snapshot]
+    refresh: 1h
+
+substitutions:
+  name: flip-demo
+  friendly_name: Flip clock demo
+  base_height: 240
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: -100
+    then:
+      # weather-base.yaml's date interval doesn't first fire until a few
+      # seconds in, which would make the date pop in mid-recording
+      - lvgl.label.update:
+          id: date_label
+          text:
+            time_format: "%a, %b %d"
+            time: clock_time
+      # no Home Assistant here, so put representative weather on screen
+      - lvgl.label.update:
+          id: weather_condition_label
+          text: "Partly cloudy"
+      - lvgl.image.update:
+          id: weather_icon
+          src: icon_partly_cloudy
+      - lvgl.label.update:
+          id: temperature_label
+          text: "21.5°C"
+      # let the boot-time sync to the real time finish, then set up 23:59
+      - delay: 1500ms
+      - script.execute:
+          id: flip_4_digits
+          h0: 1
+          h1: 3
+          m0: 5
+          m1: 9
+      - delay: 1500ms
+      - snapshot.take:
+          id: snap_display
+          filename: demo
+          frames: 100
+          frame_rate: 50fps
+      # half a second of the still 23:59, then the rollover
+      - delay: 500ms
+      - script.execute:
+          id: flip_3_digits
+          h1: 4
+          m0: 0
+          m1: 0
+
+host:
+  mac_address: "62:23:45:AF:B3:DF"
+
+network:
+
+logger:
+
+display:
+  - platform: snapshot
+    id: snap_display
+    dimensions:
+      width: 320
+      height: 240
+
+time:
+  - platform: host
+    id: clock_time
+    on_time_sync:
+      then:
+        - script.execute: clock_tick
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: clock_tick
+
+# weather-base.yaml's homeassistant sensors depend on the API component
+api:
+  encryption:
+    key: !secret encryption_key
+
+packages:
+  clock_base: !include
+    file: clock-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: clock_time
+  weather_base: !include
+    file: weather-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: clock_time
+
+lvgl:
+  theme:
+    dark_mode: true
+  pad_top: 8px
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: top_mid
+    - !include
+      file: weather-widget.yaml
+      vars:
+        align: bottom_mid

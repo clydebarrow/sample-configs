@@ -39,9 +39,15 @@ touchscreen:
     swap_xy: true
     mirror_x: false
     mirror_y: true
+  on_touch:
+    - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();
 
-display: 
+display:
   - platform: mipi_spi
+    id: disp_id
     model: jc3248w535
     rotation: 90
     show_test_card: true

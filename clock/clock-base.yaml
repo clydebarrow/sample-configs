@@ -1,0 +1,187 @@
+# Plumbing for the split-flap clock: per-digit state/scripts (via
+# flip-digit-logic.yaml), the digit->glyph mapping, the driver scripts that
+# flip a synchronized run of digits on a time tick, and the digit font -
+# sized off `base_height`.
+# Included via `packages:` (it declares top-level
+# keys like `font:`/`script:`/`mapping:`, which only a package merge can
+# splice in) - pairs with the widget fragment in clock-widget.yaml, which is
+# what actually gets dropped into an LVGL `widgets:` list.
+#
+# `base_height` is the height (px) of the space the clock is being laid out
+# in; every size below is a fixed fraction of it, tuned against a 240px-tall
+# panel (where digit_font comes out to the original hardcoded 64pt) - so the
+# same file reproduces today's look at base_height: 240 and scales cleanly
+# to a differently-sized layout slot.
+#
+# `time_id` names whichever already-declared `time:` platform gives real
+# wall-clock time on the target - `clock_time` (a `platform: host` instance)
+# for host.yaml/flip-snapshot.yaml/flip-demo.yaml, `sntp_time` for cyd.yaml.
+# Declaring that `time:` platform, and hooking its `on_time_sync`/`on_time`
+# triggers to `script.execute: clock_tick`, is left to the caller: which
+# platform to use and how often to re-tick are target choices, not clock
+# plumbing.
+#
+# Animating `transform_scale_y` (the fold/unfold in flip-digit-logic.yaml)
+# needs it marked animatable, which isn't the case in released lvgl, but is
+# available as an external compoennt.
+external_components:
+  - source: github://pr#19420
+    components: [lvgl]
+    refresh: 1h
+
+substitutions:
+  base_height: 240
+  time_id: clock_time
+  digit_font_size: ${math.floor(base_height * 4 / 15)}
+  # horizontal breathing room inside each flap beyond the digit glyph
+  # itself, and the gap between digit cells - see clock-widget.yaml
+  card_pad: ${math.floor(base_height / 24)}px
+  gap: ${math.floor(base_height / 60)}px
+
+font:
+  - file: "gfonts://Roboto"
+    id: digit_font
+    bpp: 4
+    size: ${digit_font_size}
+    glyphs: "0123456789: "
+
+lvgl:
+  # Shared LVGL styles, so the "bare, non-scrolling container" and "dark
+  # flap face with white digit" property sets are each declared once instead
+  # of being repeated on every obj/label that needs them (clock_root, the
+  # colon container, each digit cell's root and its four flap faces, all
+  # defined across clock-widget.yaml and flip-digit-widget.yaml).
+  style_definitions:
+    - id: bare_container_style
+      pad_all: 0
+      border_width: 0
+      bg_opa: transp
+      scrollbar_mode: "OFF"
+    - id: flap_style
+      pad_all: 0
+      border_width: 0
+      radius: 0
+      bg_color: 0x222222
+      bg_opa: cover
+      clip_corner: true
+      scrollbar_mode: "OFF"
+      # text properties inherit down to the flap's label child, so no
+      # separate label style is needed
+      text_font: digit_font
+      text_color: 0xFFFFFF
+
+packages:
+  h0_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: h0
+  h1_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: h1
+  m0_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: m0
+  m1_logic: !include
+    file: flip-digit-logic.yaml
+    vars:
+      slot: m1
+
+mapping:
+  - id: digit_map
+    from: int
+    to: string
+    entries:
+      0: "0"
+      1: "1"
+      2: "2"
+      3: "3"
+      4: "4"
+      5: "5"
+      6: "6"
+      7: "7"
+      8: "8"
+      9: "9"
+
+script:
+  # four driver scripts, one per possible rollover width: a clock tick
+  # only ever changes a contiguous run of digits counting from m1
+  # leftward (just m1; m1+m0; m1+m0+h1; or all four), so clock_tick
+  # below picks whichever of these matches and every digit it touches
+  # starts flipping in the same instant, keeping them in sync
+  - id: flip_1_digit
+    parameters:
+      m1: int
+    then:
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+  - id: flip_2_digits
+    parameters:
+      m0: int
+      m1: int
+    then:
+      - script.execute:
+          id: m0_flip_script
+          new_value: !lambda return m0;
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+  - id: flip_3_digits
+    parameters:
+      h1: int
+      m0: int
+      m1: int
+    then:
+      - script.execute:
+          id: h1_flip_script
+          new_value: !lambda return h1;
+      - script.execute:
+          id: m0_flip_script
+          new_value: !lambda return m0;
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+  - id: flip_4_digits
+    parameters:
+      h0: int
+      h1: int
+      m0: int
+      m1: int
+    then:
+      - script.execute:
+          id: h0_flip_script
+          new_value: !lambda return h0;
+      - script.execute:
+          id: h1_flip_script
+          new_value: !lambda return h1;
+      - script.execute:
+          id: m0_flip_script
+          new_value: !lambda return m0;
+      - script.execute:
+          id: m1_flip_script
+          new_value: !lambda return m1;
+
+  # compares the current time against what's on screen (the four
+  # ${slot}_digit_value globals) and flips only the digits that differ,
+  # starting from the highest-order one that changed
+  - id: clock_tick
+    then:
+      - lambda: |-
+          auto now = id(${time_id}).now();
+          if (!now.is_valid())
+            return;
+          int nh0 = now.hour / 10;
+          int nh1 = now.hour % 10;
+          int nm0 = now.minute / 10;
+          int nm1 = now.minute % 10;
+          if (nh0 != id(h0_digit_value)) {
+            id(flip_4_digits)->execute(nh0, nh1, nm0, nm1);
+          } else if (nh1 != id(h1_digit_value)) {
+            id(flip_3_digits)->execute(nh1, nm0, nm1);
+          } else if (nm0 != id(m0_digit_value)) {
+            id(flip_2_digits)->execute(nm0, nm1);
+          } else if (nm1 != id(m1_digit_value)) {
+            id(flip_1_digit)->execute(nm1);
+          }

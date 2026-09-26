@@ -1,0 +1,109 @@
+# Per-digit state, flip script and flap animations for one split-flap
+# digit cell. Pairs with the widget fragment in flip-digit-widget.yaml
+# (included separately, inline, so it can nest inside the clock's flex
+# row) - this part has no nesting requirement so it's included the normal
+# way, via `packages:`. `slot` prefixes every id so instances don't
+# collide.
+
+globals:
+  - id: ${slot}_digit_value
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+script:
+  # flips this digit to an explicit new value (0-9), rather than just
+  # incrementing, so a clock driver can set several digits at once and
+  # keep them in sync on rollover
+  - id: ${slot}_flip_script
+    parameters:
+      new_value: int
+    then:
+      - globals.set:
+          id: ${slot}_digit_value
+          value: !lambda return new_value;
+      # back_top already shows the new digit before the top flap folds
+      # away, so it's revealed the instant the flap disappears - the
+      # visible motion (250ms) is the *disappearing* top flap
+      - lvgl.label.update:
+          id: ${slot}_back_top_label
+          text:
+            mapping: digit_map
+            value: !lambda return id(${slot}_digit_value);
+      - lvgl.animation.start: ${slot}_fold_top_anim
+
+lvgl:
+  # Each front flap is a fixed clip window (`_front_top`/`_front_bottom`)
+  # holding a full-cell-height card (`..._card`) centred on the seam - see
+  # flip-digit-widget.yaml. The fold scales that card vertically about the
+  # seam (`transform_scale_y`, pivot at 50% of the card) so the flap
+  # background and the digit squash together; only the window-clipped half
+  # of the card is ever visible.
+  # Animating `transform_scale_y` (and the `ease_in`/`ease_out` timings)
+  # makes the fold ease in (the flap
+  # accelerates as it falls toward the seam) and the unfold eases out (the
+  # bottom flap decelerates as it settles flat).
+  #
+  # The fold goes to 0.004, not all the way to 0: stock LVGL's software
+  # renderer divides by the transform scale when mapping destination pixels
+  # back into source space (lv_draw_sw_transform.c), with no zero-guard - an
+  # actual 0 crashes with a divide-by-zero the instant the fold finishes.
+  # (Reported upstream and patched in our own LVGL checkout, but this keeps
+  # the clock working against an unpatched LVGL too.) The scale style
+  # property is fixed-point out of 256 (256 = 1.0), so 1/256 ≈ 0.0039 is the
+  # smallest step above zero that isn't just rounded back down to it; 0.004
+  # clears that with enough margin to survive the float multiply.
+  #
+  # Once the scale reaches 0.004 the window is explicitly hidden anyway:
+  # LVGL doesn't reliably draw "nothing" for a nearly-collapsed transform,
+  # and a leftover sliver of the flap's dark background is very visible
+  # cutting through a digit like "9". Likewise the scale is reset to full,
+  # and the window shown, only when the *next* fold begins.
+  animations:
+    - id: ${slot}_fold_top_anim
+      duration: 250ms
+      timing: ease_in_out
+      on_start:
+        - lvgl.widget.show: ${slot}_front_top
+      widgets:
+        - id: ${slot}_front_top_card
+          transform_scale_y:
+            from: 1.0
+            to: 0.004
+      # top flap is now fully folded into the seam - hide it (and put its
+      # scale back to full, ready for the *next* flip), give both front
+      # flaps the new digit, collapse the bottom flap so the new digit is
+      # never briefly shown at full size, then unfold it
+      on_stop:
+        - lvgl.widget.hide: ${slot}_front_top
+        - lvgl.widget.update:
+            id: ${slot}_front_top_card
+            transform_scale_y: 1.0
+        - lvgl.widget.update:
+            id: ${slot}_front_bottom_card
+            transform_scale_y: 0.004
+        - lvgl.label.update:
+            id: ${slot}_front_top_label
+            text:
+              mapping: digit_map
+              value: !lambda return id(${slot}_digit_value);
+        - lvgl.label.update:
+            id: ${slot}_front_bottom_label
+            text:
+              mapping: digit_map
+              value: !lambda return id(${slot}_digit_value);
+        - lvgl.animation.start: ${slot}_unfold_bottom_anim
+    - id: ${slot}_unfold_bottom_anim
+      duration: 250ms
+      timing: ease_in_out
+      widgets:
+        - id: ${slot}_front_bottom_card
+          transform_scale_y:
+            from: 0.004
+            to: 1.0
+      on_stop:
+        - lvgl.label.update:
+            id: ${slot}_back_bottom_label
+            text:
+              mapping: digit_map
+              value: !lambda return id(${slot}_digit_value);

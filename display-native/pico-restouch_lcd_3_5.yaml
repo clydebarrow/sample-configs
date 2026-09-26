@@ -55,8 +55,13 @@ touchscreen:
               touch.x_raw,
               touch.y_raw
               );
+    - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();
 
 display:
   - platform: mipi_spi
+    id: disp_id
     model: PICO-RESTOUCH-LCD-3.5
 

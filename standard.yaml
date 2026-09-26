@@ -1,0 +1,55 @@
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+
+logger:
+  level: DEBUG
+
+debug:
+  update_interval: 5s
+
+packages:
+  - !include wifi-package.yaml
+
+#captive_portal:
+
+#api:
+#  encryption:
+#    key: !secret encryption_key
+
+#ota:
+#  - platform: esphome
+#    encryption:
+
+button:
+  - platform: restart
+    id: restart_button
+    name: Restart
+
+text_sensor:
+  - platform: uptime
+    name: Uptime
+    update_interval: 60s
+  - platform: wifi_info
+    ssid:
+      name: SSID
+    bssid:
+      name: BSSID
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 5s
+
+  - platform: debug
+    free:
+      name: "Heap Free"
+    block:
+      name: "Heap Max Block"
+    min_free:
+      name: "Heap Min Free"
+    fragmentation:
+      name: "Heap Fragmentation"
+    loop_time:
+      name: "Loop Time"

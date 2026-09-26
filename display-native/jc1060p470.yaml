@@ -59,6 +59,7 @@ esp_ldo:
 
 display:
   - platform: mipi_dsi
+    id: disp_id
     model: JC1060P470
 
 i2c:
@@ -74,3 +75,7 @@ touchscreen:
       - logger.log:
           format: "Touch at %d/%d"
           args: [touch.x, touch.y]
+      - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();

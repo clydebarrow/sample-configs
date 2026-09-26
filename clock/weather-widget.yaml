@@ -1,0 +1,84 @@
+# Compact status bar showing today's date, a weather condition icon, and
+# the current outdoor temperature - sourced the same way as
+# ../dexfield/smalltv-package.yaml (Home Assistant weather/temperature
+# sensors, an MDI-icon `mapping:`; see weather-base.yaml), but built as
+# LVGL widgets rather than drawn with raw display calls, so it can sit
+# alongside the flip clock.
+#
+# A widget *fragment* (its root is a bare `container:` mapping, not wrapped
+# in `lvgl: widgets: [...]`), so it can be dropped straight into any
+# parent's `widgets:` list with a plain inline `!include` - see
+# clock-widget.yaml for the same trick on the clock face, and why it needs
+# to be a fragment rather than a package.
+#
+# Pairs with weather-base.yaml (packages: - not nested - since it declares
+# `font:`/`sensor:`/`image:`/`mapping:`, which only a package merge can
+# splice in); that file must be included first so `font_small`/
+# `font_medium`/`font_temperature` exist by the time this fragment
+# references them.
+#
+# Parameters, all layout/theme decisions for whoever is embedding this (not
+# derivable from `base_height`). No `substitutions:` block here - unlike a
+# package, a fragment's root can hold nothing but its one widget key, so
+# defaults are given with Jinja's `|default(...)` filter at each usage site
+# instead: `align` (LVGL alignment keyword, e.g. `bottom_mid`) has no
+# default and must be supplied explicitly; `text_color`/`icon_recolor`
+# (tint the text/icon to read clearly against whichever background the
+# target screen uses) and `temperature_color` (accent color for the large
+# temperature reading) default to a light-on-dark theme.
+container:
+  id: weather_panel
+  align: ${align}
+  scrollable: false
+  width: 100%
+  height: 65%
+  pad_bottom: 8px
+  widgets:
+    - label:
+        align: top_mid
+        width: 100%
+        text_align: center
+        id: date_label
+        text_font: font_medium
+        text_color: ${text_color|default('white')}
+        text: "---"
+    - container:
+        width: 100%
+        height: 60%
+        align: bottom_mid
+        widgets:
+          - container:
+              clickable: false
+              align: left_mid
+              height: 100%
+              width: 50%
+              widgets:
+                - label:
+                    pad_all: 0
+                    align: top_mid
+                    id: weather_condition_label
+                    text_color: ${text_color|default('white')}
+                    text_font: font_small
+                    text: "---"
+                - image:
+                    align: bottom_mid
+                    id: weather_icon
+                    src: icon_unknown
+                    image_recolor: ${icon_recolor|default('white')}
+                    image_recolor_opa: cover
+          - container:
+              align: right_mid
+              height: 100%
+              width: 50%
+              layout:
+                type: flex
+                flex_flow: column
+                flex_align_track: center
+                flex_align_main: center
+                flex_align_cross: center
+              widgets:
+                - label:
+                    id: temperature_label
+                    text_color: ${temperature_color|default('0xFFBF00')}
+                    text_font: font_temperature
+                    text: "---°C"

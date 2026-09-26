@@ -25,9 +25,15 @@ touchscreen:
     id: my_touchscreen
     interrupt_pin: 8
     reset_pin: 17
+    on_touch:
+      - lambda: |-
+          auto rotation = (id(disp_id).get_rotation() + 90) % 360;
+          id(disp_id).set_rotation((display::DisplayRotation)rotation);
+          id(disp_id).update();
 
 display:
   - platform: mipi_spi
+    id: disp_id
     model: T4-S3
 
 psram:

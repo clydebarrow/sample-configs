@@ -40,3 +40,4 @@ psram:
   speed: 80MHz
 
 lvgl:
+  rotation: 180

@@ -29,6 +29,11 @@ touchscreen:
       swap_xy: true
       mirror_y: true
       mirror_x: false
+    on_touch:
+      - lambda: |-
+          auto rotation = (id(w32_disp).get_rotation() + 90) % 360;
+          id(w32_disp).set_rotation((display::DisplayRotation)rotation);
+          id(w32_disp).update();
 
 psram:
   mode: quad
