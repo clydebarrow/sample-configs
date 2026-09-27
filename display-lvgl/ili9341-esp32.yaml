@@ -57,9 +57,6 @@ display:
     reset_pin:
       ignore_strapping_warning: true
       number: 5
-    transform:
-      swap_xy: true
-      mirror_x: false
 
 lvgl:
   buffer_size: 25%
