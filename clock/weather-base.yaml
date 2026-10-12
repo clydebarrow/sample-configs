@@ -20,6 +20,14 @@
 # `weather_entity_id`/`outside_temp_entity_id` default to the entities this
 # was built against; override them per Home Assistant instance.
 #
+# Today's forecast high/low aren't exposed as entity state, so they're
+# fetched with a `weather.get_forecasts` action call and its captured
+# response (see `fetch_forecast` below) - re-fetched whenever the current
+# condition changes (which also fires on first API connect) and every 30
+# minutes. The device must be allowed to perform Home Assistant actions
+# (the ESPHome integration's device options in Home Assistant) for this
+# to work.
+#
 # Icons are `grayscale` + `alpha_channel` (an anti-aliased glyph on a
 # transparent background), paired with LVGL's `image_recolor` style
 # property so the one icon set can be tinted to suit either a light or dark
@@ -72,6 +80,7 @@ text_sensor:
             if (!c.empty())
               c[0] = toupper(c[0]);
             return c;
+      - script.execute: fetch_forecast
 
 sensor:
   - platform: homeassistant
@@ -93,6 +102,44 @@ interval:
           text:
             time_format: "%a, %b %d"
             time: ${time_id}
+  - interval: 30min
+    then:
+      - script.execute: fetch_forecast
+
+script:
+  # today's entry from the daily forecast - `temperature` is the high,
+  # `templow` the low (not every weather provider supplies it)
+  - id: fetch_forecast
+    mode: single
+    then:
+      - if:
+          condition: api.connected
+          then:
+            - homeassistant.action:
+                action: weather.get_forecasts
+                data:
+                  entity_id: ${weather_entity_id}
+                  type: daily
+                capture_response: true
+                on_success:
+                  - lvgl.label.update:
+                      id: forecast_high_label
+                      text:
+                        format: "%.0f°"
+                        args:
+                          - response["response"]["${weather_entity_id}"]["forecast"][0]["temperature"] | NAN
+                        if_nan: "--°"
+                  - lvgl.label.update:
+                      id: forecast_low_label
+                      text:
+                        format: "%.0f°"
+                        args:
+                          - response["response"]["${weather_entity_id}"]["forecast"][0]["templow"] | NAN
+                        if_nan: "--°"
+                on_error:
+                  - logger.log:
+                      format: "Forecast fetch failed: %s"
+                      args: [error.c_str()]
 
 image:
   - platform: file

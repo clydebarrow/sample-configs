@@ -1,9 +1,9 @@
-# Compact status bar showing today's date, a weather condition icon, and
-# the current outdoor temperature - sourced the same way as
-# ../dexfield/smalltv-package.yaml (Home Assistant weather/temperature
-# sensors, an MDI-icon `mapping:`; see weather-base.yaml), but built as
-# LVGL widgets rather than drawn with raw display calls, so it can sit
-# alongside the flip clock.
+# Compact status bar showing today's date, a weather condition icon, the
+# current outdoor temperature and today's forecast high/low - sourced the
+# same way as ../dexfield/smalltv-package.yaml (Home Assistant
+# weather/temperature sensors, an MDI-icon `mapping:`; see
+# weather-base.yaml), but built as LVGL widgets rather than drawn with raw
+# display calls, so it can sit alongside the flip clock.
 #
 # A widget *fragment* (its root is a bare `container:` mapping, not wrapped
 # in `lvgl: widgets: [...]`), so it can be dropped straight into any
@@ -72,13 +72,45 @@ container:
               width: 50%
               layout:
                 type: flex
-                flex_flow: column
+                flex_flow: row
                 flex_align_track: center
                 flex_align_main: center
                 flex_align_cross: center
+                pad_column: 6px
               widgets:
                 - label:
                     id: temperature_label
                     text_color: ${temperature_color|default('0xFFBF00')}
                     text_font: font_temperature
                     text: "---°C"
+                # today's forecast high over low, split by a rule
+                - container:
+                    pad_left: 8px
+                    pad_right: 12px
+                    width: SIZE_CONTENT
+                    height: SIZE_CONTENT
+                    layout:
+                      type: flex
+                      flex_flow: column
+                      flex_align_main: center
+                      flex_align_cross: center
+                      pad_row: 2px
+                    widgets:
+                      - label:
+                          id: forecast_high_label
+                          text_color: ${text_color|default('white')}
+                          text_font: font_small
+                          text: "--°"
+                      - obj:
+                          width: 100%
+                          height: 1px
+                          pad_all: 0
+                          border_width: 0
+                          radius: 0
+                          bg_color: ${text_color|default('white')}
+                          bg_opa: cover
+                      - label:
+                          id: forecast_low_label
+                          text_color: ${text_color|default('white')}
+                          text_font: font_small
+                          text: "--°"

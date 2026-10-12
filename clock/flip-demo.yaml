@@ -7,11 +7,6 @@
 # which would flip the digits back to the actual time on the next minute
 # rollover - so don't start a run in the last few seconds of a minute.
 
-external_components:
-  - source: github://pr#19421
-    components: [snapshot]
-    refresh: 1h
-
 substitutions:
   name: flip-demo
   friendly_name: Flip clock demo

@@ -1,0 +1,65 @@
+esphome:
+  name: esp32-8048s043
+  friendly_name: Sunton ESP32-8048S043
+  
+
+esp32:
+  variant: esp32s3
+  flash_size: 16MB
+
+logger:
+  hardware_uart: uart0
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+output:
+  - platform: ledc
+    pin: GPIO2
+    id: backlight_pwm
+
+light:
+  - platform: monochromatic
+    output: backlight_pwm
+    name: "Đèn nền"
+    id: back_light
+    restore_mode: ALWAYS_ON
+
+i2c:
+  - id: bus_a
+    scl: GPIO20
+    sda: GPIO19
+
+touchscreen:
+  platform: gt911
+  id: my_touchscreen
+
+display:
+  - id: my_display
+    platform: mipi_rgb
+    model: rpi
+    dimensions:
+      width: 800
+      height: 480
+    color_order: RGB
+    de_pin: 40
+    hsync_pin: 39
+    vsync_pin: 41
+    pclk_pin: 42
+    pclk_inverted: true
+    pclk_frequency: 16MHz
+    hsync_front_porch: 8
+    hsync_pulse_width: 4
+    hsync_back_porch: 8
+    vsync_front_porch: 8
+    vsync_pulse_width: 4
+    vsync_back_porch: 8
+    data_pins:
+      red: [45, 48, 47, 21, 14]
+      green: [5, 6, 7, 15, 16, 4]
+      blue: [8, 3, 46, 9, 1]
+
+
+lvgl:
+

@@ -1,0 +1,71 @@
+# Debug-only host target: hammers all four digits with a flip every 300ms
+# (much faster than a real clock, which only flips m1 once a minute) to
+# reproduce the leaked-transform-layer bug from clock-base.yaml's flap-fold
+# animation quickly, without needing real hardware. Host has effectively
+# unlimited RAM, so this isn't about running the heap out - it's about
+# capturing a `logger: level: DEBUG` trace and matching every
+# "allocate/draw buf allocate SIZE -> PTR" against a later "free PTR" (see
+# lv_malloc_core/lv_free_core/lv_alloc_draw_buf in lvgl_esphome.cpp) to spot
+# addresses that are allocated and never freed.
+substitutions:
+  name: flip-stress
+  friendly_name: Flip stress test
+  base_height: 232
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  # Deliberately NOT pointed at piolibs/lvgl (crashes on host for unrelated
+  # reasons - that checkout's PPA/ESP32-P4 work doesn't seem to be portable
+  # to native builds). The managed lvgl__lvgl package (same version
+  # flip-snapshot.yaml uses) reproduces the same leak just fine.
+
+host:
+  mac_address: "62:23:45:AF:B3:E2"
+
+network:
+
+logger:
+
+display:
+  - platform: snapshot
+    id: snap_display
+    dimensions:
+      width: 320
+      height: 240
+
+time:
+  - platform: host
+    id: clock_time
+
+packages:
+  clock_base: !include
+    file: clock-base.yaml
+    vars:
+      base_height: ${base_height}
+      time_id: clock_time
+
+lvgl:
+  widgets:
+    - !include
+      file: clock-widget.yaml
+      vars:
+        align: center
+
+globals:
+  - id: stress_counter
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+interval:
+  - interval: 300ms
+    then:
+      - lambda: |-
+          int n = id(stress_counter) + 1;
+          id(stress_counter) = n;
+          int h0 = (n / 1000) % 10;
+          int h1 = (n / 100) % 10;
+          int m0 = (n / 10) % 10;
+          int m1 = n % 10;
+          id(flip_4_digits)->execute(h0, h1, m0, m1);

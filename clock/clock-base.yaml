@@ -21,13 +21,6 @@
 # platform to use and how often to re-tick are target choices, not clock
 # plumbing.
 #
-# Animating `transform_scale_y` (the fold/unfold in flip-digit-logic.yaml)
-# needs it marked animatable, which isn't the case in released lvgl, but is
-# available as an external compoennt.
-external_components:
-  - source: github://pr#19420
-    components: [lvgl]
-    refresh: 1h
 
 substitutions:
   base_height: 240

@@ -9,10 +9,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  platformio_options:
-    #lib_deps:
-    #  - symlink:///Users/clyde/dev/opensourceprojects/piolibs/lvgl
-    build_flags:
+  build_flags:
     - -g3
   on_boot:
     script.execute: clock_tick

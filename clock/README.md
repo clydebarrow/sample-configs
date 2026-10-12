@@ -1,11 +1,11 @@
 # Split-flap weather clock
 
 An ESPHome/LVGL split-flap style HH:MM clock with a status bar underneath
-showing today's date, the current weather condition (as an icon + text) and
-outside temperature, pulled from Home Assistant. It runs both on real
-hardware (a Sunton ESP32-2432S028 "CYD" board) and as a native binary on a
-desktop machine (via ESPHome's `host:` platform + SDL window), for fast
-iteration without flashing real hardware.
+showing today's date, the current weather condition (as an icon + text),
+outside temperature and today's forecast high/low, pulled from Home
+Assistant. It runs both on real hardware (a Sunton ESP32-2432S028 "CYD"
+board) and as a native binary on a desktop machine (via ESPHome's `host:`
+platform + SDL window), for fast iteration without flashing real hardware.
 
 ![Clock running in its case](flip-clock-in-case.jpg)
 
@@ -106,6 +106,12 @@ overridden the same way `base_height` is.
 `outside_temp_entity_id` in its `vars:` to point at your own Home
 Assistant weather/temperature entities, the same way `base_height` is
 overridden.
+
+Today's forecast high/low come from a `weather.get_forecasts` action call
+on the weather entity (re-fetched when the condition changes and every 30
+minutes), so the device must be allowed to perform Home Assistant actions:
+in Home Assistant, open the ESPHome integration's options for the device
+and enable "Allow the device to perform Home Assistant actions".
 
 ## Construction
 
