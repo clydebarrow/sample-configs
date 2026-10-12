@@ -1,0 +1,62 @@
+esphome:
+  name: waveshare-spd2010
+
+esp32:
+  variant: esp32s3
+
+external_components:
+  #- source: github://pr#19056
+    #components: [mipi_spi]
+    #refresh: 1h
+  #- source: github://pr#19057
+    #components: [spd2010]
+    #refresh: 1h
+
+touchscreen:
+  - platform: spd2010
+  #  interrupt_pin:
+  #    number: GPIO4
+  #    mode: INPUT_PULLUP
+    #reset_pin: {pca9554: , number: 0}
+
+
+
+logger:
+
+i2c:
+  sda: 11
+  scl: 10
+
+pca9554:
+  id: board_expander
+
+spi:
+  type: quad
+  clk_pin: 40
+  data_pins: [{ number: 46, ignore_strapping_warning: true}, {number: 45, ignore_strapping_warning: true}, 42, 41]
+
+display:
+  - platform: mipi_spi
+    model: WAVESHARE-ESP32-S3-TOUCH-LCD-1.46
+    enable_pin: 5
+
+#output:
+#  - platform: ledc
+#    id: backlight_output
+#    pin: 5
+#    frequency: 2200Hz
+#
+#
+#light:
+#  - platform: monochromatic
+#    output: backlight_output
+#    name: LCD Backlight
+#    id: backlight
+#    initial_state:
+#      state: on
+#    default_transition_length: 0s
+#
+psram:
+  mode: octal
+
+lvgl:
