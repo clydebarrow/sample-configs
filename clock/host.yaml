@@ -50,6 +50,8 @@ time:
 api:
   encryption:
     key: !secret encryption_key
+  outgoing_connection:
+    delay: 5s
 
 packages:
   clock_base: !include

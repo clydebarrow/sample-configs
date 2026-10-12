@@ -12,16 +12,6 @@ debug:
 packages:
   - !include wifi-package.yaml
 
-#captive_portal:
-
-#api:
-#  encryption:
-#    key: !secret encryption_key
-
-#ota:
-#  - platform: esphome
-#    encryption:
-
 button:
   - platform: restart
     id: restart_button
