@@ -1,0 +1,337 @@
+# ============================================================
+#  reTerminal E1003 – Sample configuration.
+#  Hardware: Seeed reTerminal E1003 (ESP32-S3) + IT8951 e-Paper
+#            (1872x1404, 10.3-inch) + SHT4x + physical buttons
+#
+#  Deep-sleep battery build — 5min wake interval
+#  Measured sleep current: below 1mA
+#
+#  Key hardware notes (E1003 schematic v1.0):
+#    GPIO40 = VBAT_EN (battery ADC divider enable)
+#    GPIO21 = ITE_VCC_EN — managed by koosoli driver, do not redefine
+#    GPIO39 = SD_EN, GPIO48 = TOUCH_RES (active-low GT911)
+#    GPIO11 = EPD_Drive_EN, GPIO38 = PDM_EN
+#    GPIO45 = BUZZER_EN, GPIO16 = USER_LED (active-LOW, excluded from hold)
+#    GPIO4  = center white button (wake source), ext pull-up R37 10K on schematic
+#
+#  Deep-sleep GPIO hold:
+#    Non-RTC pins (>21) require gpio_deep_sleep_hold_en() to survive sleep.
+#    Without holds, bare digitalWrite() calls are silently discarded at
+#    sleep entry — GPIO39 (SD) and GPIO48 (touch) float HIGH, keeping
+#    subsystems live and burning ~4.95mA during sleep.
+#    GPIO16 is intentionally excluded from the hold set (latching LOW
+#    drives the green LED on via Q4 transistor).
+#
+#  Wake: ext1 ANY_LOW on GPIO4. gpio_deep_sleep_hold_en() breaks ext0;
+#        ext1 is unaffected. External R37 provides the pull-up.
+#
+#  OTA procedure: wake device via GPIO4, then activate "Hold Awake (OTA)"
+#                 in HA within the brief awake window.
+#
+#  Based on: https://github.com/Incipiens/Adam-Home-Assistant-Snippets
+#             /tree/main/ESPHome/reTerminal%20E1003%20-%20Touch%20controls
+# ============================================================
+
+substitutions:
+  device_name: reterminal-e1003
+  friendly_name: reTerminal E1003
+
+# ── Core ESPHome identity ────────────────────────────────────
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+# ── ESP32-S3 ─────────────────────────────────────────────────
+esp32:
+  variant: esp32s3
+  flash_size: 32MB
+  framework:
+    type: esp-idf
+    advanced:
+      enable_idf_experimental_features: true
+
+psram:
+  mode: octal
+
+# ── Deep sleep ───────────────────────────────────────────────
+# ext1 required because gpio_deep_sleep_hold_en() breaks ext0 wake.
+# ANY_LOW is correct for S3 (ALL_LOW is rejected by ESPHome validator).
+deep_sleep:
+  id: deep_sleep_control
+  sleep_duration: 5min
+  run_duration: 60s
+  esp32_ext1_wakeup:
+    pins:
+      - number: GPIO4
+        allow_other_uses: true
+    mode: ANY_LOW
+
+# ── I2C bus ──────────────────────────────────────────────────
+i2c:
+  - sda: GPIO19
+    scl: GPIO20
+    scan: true
+    id: bus_a
+
+# ── SPI bus (IT8951 e-Paper controller) ─────────────────────
+spi:
+  - id: it8951_spi
+    clk_pin: GPIO7
+    mosi_pin: GPIO9
+    miso_pin: GPIO8
+
+# ── Scripts ──────────────────────────────────────────────────
+script:
+  - id: wake_cycle
+    mode: single
+    then:
+      # Read battery voltage with the divider enabled only for the measurement
+      - switch.turn_on: vbat_enable
+      - delay: 50ms
+      - component.update: battery_voltage
+      - switch.turn_off: vbat_enable
+      - component.update: battery_level
+      - component.update: sht4x_sensor
+      # SHT4x publishes asynchronously after its measurement delay
+      - delay: 100ms
+      # Show time, voltage, temperature and humidity on the display
+      - lvgl.label.update:
+          id: time_label
+          text:
+            time_format: "%H:%M"
+            time: ha_time
+      - lvgl.label.update:
+          id: battery_label
+          text:
+            format: "Battery: %.2f V"
+            args: [id(battery_voltage).state]
+      - lvgl.label.update:
+          id: temperature_label
+          text:
+            format: "Temperature: %.1f °C"
+            args: [id(sht4x_temperature).state]
+      - lvgl.label.update:
+          id: humidity_label
+          text:
+            format: "Humidity: %.0f %%"
+            args: [id(sht4x_humidity).state]
+      - delay: 3s
+      - logger.log: "Render complete"
+      # Wait for HA so the voltage gets reported before sleeping
+      - wait_until:
+          condition:
+            api.connected:
+          timeout: 30s
+      - delay: 2s
+      - logger.log: "Entering deep sleep"
+      - deep_sleep.enter: deep_sleep_control
+
+# ── Fonts ───────────────────────────────────────────────────
+font:
+  - file: "gfonts://Roboto"
+    id: font_med
+    size: 36
+    glyphs: "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ °"
+  - file: "gfonts://Roboto@700"
+    id: font_bold
+    size: 52
+    glyphs: "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ °"
+  - file: "gfonts://Roboto@700"
+    id: font_header
+    size: 48
+    glyphs: "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ °"
+
+# ── Time ─────────────────────────────────────────────────────
+time:
+  - platform: homeassistant
+    id: ha_time
+    on_time_sync:
+      - script.execute: wake_cycle
+
+# ── Binary sensors ───────────────────────────────────────────
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO3
+      ignore_strapping_warning: true
+      mode: INPUT_PULLUP
+      inverted: true
+    id: button_1
+    name: "Button 1 (Green Left)"
+
+  - platform: gpio
+    pin:
+      number: GPIO4
+      mode: INPUT_PULLUP
+      inverted: true
+      allow_other_uses: true
+    id: button_2
+    name: "Button 2 (Center White) Wake"
+
+  - platform: gpio
+    pin:
+      number: GPIO5
+      mode: INPUT_PULLUP
+      inverted: true
+    id: button_3
+    name: "Button 3 (Left White)"
+
+# ── Buttons (HA) ─────────────────────────────────────────────
+button:
+  - platform: template
+    name: "Hold Awake (OTA)"
+    on_press:
+      - script.stop: wake_cycle
+      - deep_sleep.prevent: deep_sleep_control
+
+  - platform: template
+    name: "Sleep Now"
+    on_press:
+      - deep_sleep.enter: deep_sleep_control
+
+# ── Sensors ──────────────────────────────────────────────────
+sensor:
+  - platform: adc
+    pin: GPIO1
+    name: "Battery Voltage"
+    id: battery_voltage
+    update_interval: never
+    attenuation: 12db
+    filters:
+      - multiply: 2.0
+
+  # Battery level calibration curve sourced from Seeed Studio's reTerminal E10xx
+  # ESPHome advanced guide:
+  # https://wiki.seeedstudio.com/reterminal_e10xx_with_esphome_advanced/
+  - platform: template
+    name: "Battery Level"
+    id: battery_level
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    device_class: battery
+    state_class: measurement
+    lambda: 'return id(battery_voltage).state;'
+    update_interval: never
+    filters:
+      - calibrate_linear:
+          - 4.15 -> 100.0
+          - 3.96 -> 90.0
+          - 3.91 -> 80.0
+          - 3.85 -> 70.0
+          - 3.80 -> 60.0
+          - 3.75 -> 50.0
+          - 3.68 -> 40.0
+          - 3.58 -> 30.0
+          - 3.49 -> 20.0
+          - 3.41 -> 10.0
+          - 3.30 -> 5.0
+          - 3.27 -> 0.0
+      - clamp:
+          min_value: 0
+          max_value: 100
+
+  - platform: sht4x
+    id: sht4x_sensor
+    temperature:
+      name: "Temperature"
+      id: sht4x_temperature
+    humidity:
+      name: "Humidity"
+      id: sht4x_humidity
+    address: 0x44
+    update_interval: 60s
+
+# ── Display ──────────────────────────────────────────────────
+display:
+  - platform: it8951
+    # Predefined enable pins are automatically driven low and held during deep sleep
+    model: seeed-reterminal-e1003
+    
+lvgl:
+  update_when_display_idle: true
+  widgets:
+    - obj:
+        align: center
+        width: SIZE_CONTENT
+        height: SIZE_CONTENT
+        border_width: 0
+        pad_all: 0
+        layout:
+          type: flex
+          flex_flow: column
+          flex_align_cross: center
+          pad_row: 16
+        widgets:
+          - label:
+              id: time_label
+              text: "--:--"
+              text_font: font_header
+          - label:
+              id: battery_label
+              text: "Battery: --"
+              text_font: font_med
+          - label:
+              id: temperature_label
+              text: "Temperature: --"
+              text_font: font_med
+          - label:
+              id: humidity_label
+              text: "Humidity: --"
+              text_font: font_med
+
+# ── Connectivity ─────────────────────────────────────────────
+logger:
+  hardware_uart: UART0
+
+api:
+  encryption:
+    key: !secret encryption_key
+
+ota:
+  - platform: esphome
+    encryption:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: !secret domain
+  fast_connect: true
+  power_save_mode: none
+
+
+switch:
+  - platform: gpio
+    name: "Enable Mic"
+    pin:
+      number: GPIO38
+      hold_state: true
+  - platform: gpio
+    name: "Enable SD"
+    pin:
+      number: GPIO39
+      hold_state: true
+  - platform: gpio
+    id: vbat_enable
+    name: "Enable VBAT"
+    pin:
+      number: GPIO40
+    restore_mode: ALWAYS_OFF
+  - platform: gpio
+    name: "Enable Header"
+    pin:
+      number: GPIO46
+      ignore_strapping_warning: True
+  - platform: gpio
+    pin:
+      number: GPIO16
+      hold_state: true
+    id: user_led
+    inverted: true
+
+touchscreen:
+  - platform: gt911
+    id: touchscreen_panel
+    interrupt_pin: GPIO2
+    reset_pin:
+      number: GPIO48
+      hold_state: true
