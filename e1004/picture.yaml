@@ -20,6 +20,9 @@ psram:
 packages:
   - !include standard.yaml
 
+ota:
+  platform: esphome
+
 logger:
   hardware_uart: UART0
 

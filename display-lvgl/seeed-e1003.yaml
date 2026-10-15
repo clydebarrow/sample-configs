@@ -36,12 +36,10 @@ substitutions:
   device_name: reterminal-e1003
   friendly_name: reTerminal E1003
 
-# ── Core ESPHome identity ────────────────────────────────────
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
 
-# ── ESP32-S3 ─────────────────────────────────────────────────
 esp32:
   variant: esp32s3
   flash_size: 32MB
@@ -53,7 +51,6 @@ esp32:
 psram:
   mode: octal
 
-# ── Deep sleep ───────────────────────────────────────────────
 # ext1 required because gpio_deep_sleep_hold_en() breaks ext0 wake.
 # ANY_LOW is correct for S3 (ALL_LOW is rejected by ESPHome validator).
 deep_sleep:
@@ -66,21 +63,18 @@ deep_sleep:
         allow_other_uses: true
     mode: ANY_LOW
 
-# ── I2C bus ──────────────────────────────────────────────────
 i2c:
   - sda: GPIO19
     scl: GPIO20
     scan: true
     id: bus_a
 
-# ── SPI bus (IT8951 e-Paper controller) ─────────────────────
 spi:
   - id: it8951_spi
     clk_pin: GPIO7
     mosi_pin: GPIO9
     miso_pin: GPIO8
 
-# ── Scripts ──────────────────────────────────────────────────
 script:
   - id: wake_cycle
     mode: single
@@ -126,7 +120,6 @@ script:
       - logger.log: "Entering deep sleep"
       - deep_sleep.enter: deep_sleep_control
 
-# ── Fonts ───────────────────────────────────────────────────
 font:
   - file: "gfonts://Roboto"
     id: font_med
@@ -141,14 +134,12 @@ font:
     size: 48
     glyphs: "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ °"
 
-# ── Time ─────────────────────────────────────────────────────
 time:
   - platform: homeassistant
     id: ha_time
     on_time_sync:
       - script.execute: wake_cycle
 
-# ── Binary sensors ───────────────────────────────────────────
 binary_sensor:
   - platform: gpio
     pin:
@@ -176,7 +167,6 @@ binary_sensor:
     id: button_3
     name: "Button 3 (Left White)"
 
-# ── Buttons (HA) ─────────────────────────────────────────────
 button:
   - platform: template
     name: "Hold Awake (OTA)"
@@ -189,7 +179,6 @@ button:
     on_press:
       - deep_sleep.enter: deep_sleep_control
 
-# ── Sensors ──────────────────────────────────────────────────
 sensor:
   - platform: adc
     pin: GPIO1
@@ -241,7 +230,6 @@ sensor:
     address: 0x44
     update_interval: 60s
 
-# ── Display ──────────────────────────────────────────────────
 display:
   - platform: it8951
     # Predefined enable pins are automatically driven low and held during deep sleep
@@ -279,7 +267,6 @@ lvgl:
               text: "Humidity: --"
               text_font: font_med
 
-# ── Connectivity ─────────────────────────────────────────────
 logger:
   hardware_uart: UART0
 
